@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>オライリー on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/%E3%82%AA%E3%83%A9%E3%82%A4%E3%83%AA%E3%83%BC/index.xml</link>
+    <description>Recent content in オライリー on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/%E3%82%AA%E3%83%A9%E3%82%A4%E3%83%AA%E3%83%BC/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>railsに外部キー制約を追加してみた</title>
+      <link>https://b.pyar.bz/20141021/foreigner</link>
+      <pubDate>Tue, 21 Oct 2014 05:31:16 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141021/foreigner</guid>
+      <description>
+
+&lt;p&gt;データベースに関して調べることって、業務的な側面から、わかりづらい単語や言葉ばっかり使って理解しづらいよね。
+誰でも分かるように説明するのがプロなんだよなぁ。。。。まぁいいか。&lt;/p&gt;
+
+&lt;p&gt;プログラミングそのものに関してはそうでもないんだけどな。なので身近にあるもので例えてみる。&lt;/p&gt;
+
+&lt;h2 id=&#34;外部キー-foreign-key-とは&#34;&gt;外部キー(foreign key)とは&lt;/h2&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;リレーショナルデータベース(RDB)で、テーブルのある列に、別のテーブルの特定の列に含まれる項目しか入力できないようにする制約。また、その際に指定する列。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;参考: &lt;a href=&#34;http://e-words.jp/w/E5A496E983A8E382ADE383BC.html&#34;&gt;e-words.jp&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;うん言葉で言ってもわかりづらいｗ&lt;/p&gt;
+
+&lt;p&gt;図で表してみる。&lt;/p&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/anime2.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;この左側の赤いやつが&lt;code&gt;外部キー&lt;/code&gt;。別のテーブルの主キーを指してるでしょ？また、別のテーブルの主キーは&lt;code&gt;参照キー&lt;/code&gt;と呼ばれる。&lt;/p&gt;
+
+&lt;h2 id=&#34;外部キーの問題って&#34;&gt;外部キーの問題って？&lt;/h2&gt;
+
+&lt;p&gt;じゃあもし外部キーの参照先が更新されたり、削除されたらどうなるか。&lt;/p&gt;
+
+&lt;p&gt;animeテーブルの&lt;code&gt;id = 2&lt;/code&gt;から&lt;code&gt;id = 5&lt;/code&gt;に更新してみる。&lt;/p&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/anime3.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code&gt;anime_id = 2&lt;/code&gt;の状態ではあるけど、指している場所にデータがない。どこ指してるかわからない。&lt;/p&gt;
+
+&lt;p&gt;参照整合性が取れない。いわゆる&lt;code&gt;迷子レコード&lt;/code&gt;になる。&lt;/p&gt;
+
+&lt;h2 id=&#34;なぜ外部キー制約を使うか&#34;&gt;なぜ外部キー制約を使うか&lt;/h2&gt;
+
+&lt;p&gt;じゃあこれをどうするかというと、以下の2通りの方法を行う。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;アプリ側で監視する&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;外部キー制約&lt;/code&gt;を使う&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;普通は1を使うんだけど、1にも以下の問題点がある。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;スクリプトを全ての参照に対して行う必要がある&lt;/li&gt;
+&lt;li&gt;チェックを毎日、何回も実行しなければならない&lt;/li&gt;
+&lt;li&gt;参照が壊れていた場合でも修正できるかはわからない&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;この位の小さいテーブルだったらスクリプトでもいいけど、親、子、孫&amp;hellip;と何個も組み合わさっているとチェックできるかは怪しい。&lt;/p&gt;
+
+&lt;p&gt;そこで2の手法、&lt;code&gt;外部キー制約&lt;/code&gt;を使う。&lt;/p&gt;
+
+&lt;p&gt;ちなみに、これはオライリーの&lt;code&gt;SQLアンチパターン&lt;/code&gt;に&lt;code&gt;外部キー嫌い&lt;/code&gt;って項目で書いてある。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.amazon.co.jp/gp/product/4873115892/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;camp=247&amp;creative=1211&amp;creativeASIN=4873115892&amp;linkCode=as2&amp;tag=pyar6329-22&#34;&gt;&lt;img width=&#34;50%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/sql_anch.jpg&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;この本、結構面白くてSQLでダメなことが一通り書いてある。
+DB設計時にこれどうすればいいんだろうってのが結構解決する。俺でも分かったから、初心者でもわかりやすいと思う。
+特にパスの&lt;code&gt;閉包テーブル&lt;/code&gt;とポリモーフィックの&lt;code&gt;単一テーブル継承(Single Table Inheritance、通称STI)&lt;/code&gt;にはお世話になりました。&lt;/p&gt;
+
+&lt;h2 id=&#34;外部キー制約の種類&#34;&gt;外部キー制約の種類&lt;/h2&gt;
+
+&lt;p&gt;外部キー制約は更新時(&lt;code&gt;UPDATE ON&lt;/code&gt;)と削除時(&lt;code&gt;DELETE ON&lt;/code&gt;)にそれぞれ設定できる。&lt;/p&gt;
+
+&lt;p&gt;外部キー制約は主に4種類。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;NO ACTION&lt;/li&gt;
+&lt;li&gt;RESTRICT&lt;/li&gt;
+&lt;li&gt;CASCADE&lt;/li&gt;
+&lt;li&gt;SET NULL&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;SET DEFAULTとかもあるけど、今回は割愛。&lt;code&gt;NO ACTION&lt;/code&gt;と&lt;code&gt;RESTRICT&lt;/code&gt;は同じ。&lt;/p&gt;
+
+&lt;h3 id=&#34;restrict-no-action&#34;&gt;RESTRICT (NO ACTION)&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/restrict.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;子が外部キーを持っていた場合、その親の操作をさせなくする。&lt;/p&gt;
+
+&lt;h3 id=&#34;cascade&#34;&gt;CASCADE&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/cascade.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;子が外部キーを持っていた場合、その親が更新や削除したら、子もそれに追従する。&lt;/p&gt;
+
+&lt;h3 id=&#34;set-null&#34;&gt;SET NULL&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/null.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;子が外部キーを持っていた場合、その親が更新や削除したら、子にnullを代入する。&lt;/p&gt;
+
+&lt;h3 id=&#34;railsではどうなの&#34;&gt;Railsではどうなの？&lt;/h3&gt;
+
+&lt;p&gt;RailsはActiveRecord経由で操作、つまりmodelに書く。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class User &amp;lt; ActiveRecord::Base
+  has_one :animes, :class_name =&amp;gt; &#39;Anime&#39;, :dependent =&amp;gt; :destroyend
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;基本的には、&lt;code&gt;:dependent =&amp;gt; 制約名&lt;/code&gt;を追加するだけでいい。&lt;/p&gt;
+
+&lt;p&gt;でもこれは&lt;strong&gt;ActiveRecord経由で操作するものだけにしか効果が無い&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;つまり&lt;code&gt;user1.destroy&lt;/code&gt;とかでは効いても&lt;code&gt;user1.delete&lt;/code&gt;では効かない。&lt;/p&gt;
+
+&lt;p&gt;RailsはDB自体には制約ができない。なのでそれに対応するgem(&lt;code&gt;foreigner&lt;/code&gt;)を入れる必要がある。&lt;/p&gt;
+
+&lt;h2 id=&#34;gemの導入&#34;&gt;Gemの導入&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;Gemfile&lt;/code&gt;に&lt;code&gt;foreigner&lt;/code&gt;を追加。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;gem &#39;foreigner&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;実際に例で作成してみる&#34;&gt;実際に例で作成してみる&lt;/h2&gt;
+
+&lt;p&gt;今回は次のようなテーブルの場合を考える。&lt;/p&gt;
+
+&lt;div&gt;&lt;img width=&#34;80%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/foreigner-pc.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;usersテーブルにユーザー名、filesテーブルにファイル名。この2つが親。&lt;/p&gt;
+
+&lt;p&gt;playsテーブルが、どのユーザーが何のファイルを再生したかをカウントする、というもの。これが子。&lt;/p&gt;
+
+&lt;p&gt;playのロー(行データ)はusersテーブルとfilesテーブルに依存している。&lt;/p&gt;
+
+&lt;p&gt;親のロー(行データ)が更新したら子も更新し、削除されたら子も削除する。&lt;/p&gt;
+
+&lt;p&gt;モデルの作成は以下のコマンド。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model user name:string
+$ rails g model file name:string
+$ rails g play count:integer file:references user:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;注意点は、&lt;strong&gt;一度テーブルを作成してから&lt;/strong&gt;でないと反映できない。なので別にmigrationファイルを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g migration AddForeignKeyToPlays
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;AddForeignKeyToPlays&lt;/code&gt;の部分は、&lt;code&gt;AddForeignKeyToテーブル名複数形&lt;/code&gt;になる。&lt;/p&gt;
+
+&lt;p&gt;実際に作成されたmigrationファイルに外部キー制約を記入していく。書き方は3通り。&lt;/p&gt;
+
+&lt;h3 id=&#34;1-繰り返しを使う&#34;&gt;1. 繰り返しを使う&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class AddForeignKeyToPlays &amp;lt; ActiveRecord::Migration
+  def change
+    change_table :plays do |t|
+      t.foreign_key :users, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;
+      t.foreign_key :files, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;1.の場合、
+&lt;code&gt;t.foreign_key :users, options:&lt;/code&gt;とあるが、&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;t.foreign_key :親のテーブル名複数形, options: &#39;付与するSQL制約&#39;&lt;/code&gt;のように書く。&lt;/p&gt;
+
+&lt;h3 id=&#34;2-メソッドを使う&#34;&gt;2. メソッドを使う&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class AddForeignKeyToPlays &amp;lt; ActiveRecord::Migration
+  def change
+    add_foreign_key(:plays, :users, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;)
+    add_foreign_key(:plays, :files, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;)
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;2.の場合、
+&lt;code&gt;add_foreign_key(:plays, :users, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;)&lt;/code&gt;とあるが、&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;add_foreign_key(:子のテーブル名複数形, :親のテーブル名複数形, options: &#39;付与するSQL制約&#39;)&lt;/code&gt;のように書く。&lt;/p&gt;
+
+&lt;h3 id=&#34;3-メソッド-括弧なし-を使う&#34;&gt;3. メソッド(括弧なし)を使う&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class AddForeignKeyToPlays &amp;lt; ActiveRecord::Migration
+  def change
+    add_foreign_key :plays, :users, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;
+    add_foreign_key :plays, :files, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;3.の場合は2の括弧を外しただけ。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;付与するSQL制約&lt;/code&gt;は、SQLによって効果が違う。
+postgresqlの場合だと、以下の表通り。&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;更新時(ON UPDATE)の効果&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;削除時(ON DELETE)の効果&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;NO ACTION&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;規定値。親が更新できない。&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;規定値。親が削除できない。&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;RESTRICT&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;NO ACTIONと同じだが、制約の検査を遅らせられない&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;NO ACTIONと同じだが、制約の検査を遅らせられない&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;CASCADE&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;親に合わせて子も更新&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;親に合わせて子も削除&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;SET NULL&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;null値を代入&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;null値を代入&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;SET DEFAULT&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;自分で決めた規定値にする&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;自分で決めた規定値にする&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;なので&lt;code&gt;ON UPDATE CASCADE ON DELETE CASCADE&lt;/code&gt;だと、更新時も終了時も親に合わせて更新、削除になる。&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

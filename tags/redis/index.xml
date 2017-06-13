@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Redis on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/redis/index.xml</link>
+    <description>Recent content in Redis on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/redis/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>redisのkeyについて調べてみた</title>
+      <link>https://b.pyar.bz/20160628/redis-keys</link>
+      <pubDate>Tue, 28 Jun 2016 00:03:53 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20160628/redis-keys</guid>
+      <description>
+
+&lt;h2 id=&#34;特徴&#34;&gt;特徴&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;バイナリセーフ&lt;/li&gt;
+&lt;li&gt;文字列からjpegファイルまでキーとして扱える&lt;/li&gt;
+&lt;li&gt;空文字もOK&lt;/li&gt;
+&lt;li&gt;短いほうがメモリ効率がいい。&lt;/li&gt;
+&lt;li&gt;キーの最大長は512MB&lt;/li&gt;
+&lt;li&gt;ある要素を追加するとき、対象のキーが存在しない場合は、要素の追加前に &lt;code&gt;データタイプの空集合(型が決まっていないもの)&lt;/code&gt; が作成される&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;データタイプの空集合(型が決まっていないもの)&lt;/code&gt; から全ての要素が削除されたとき、キーは自動的に削除される&lt;/li&gt;
+&lt;li&gt;空のキーに対してread-onlyのコマンドや削除するコマンドを実行すると、空集合に対しての結果が返ってくる&lt;/li&gt;
+&lt;li&gt;すでにキーが存在する場合、別のデータタイプ(型)のコマンドは実行エラーになる&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;注意点&#34;&gt;注意点&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;長すぎるキーはだめ。メモリ効率が悪く、データから検索時にキーの比較に処理が重くなる&lt;/li&gt;
+&lt;li&gt;キーをhash化すると(e.g. sha1)、メモリ使用効率とネットワーク帯域が良くなる&lt;/li&gt;
+&lt;li&gt;短すぎるキーはだめ(e.g. &lt;code&gt;user:10:following&lt;/code&gt; を &lt;code&gt;u:10:f&lt;/code&gt; などにする)。可読性が悪く、メモリ効率では誤差。&lt;/li&gt;
+&lt;li&gt;スキーマにこだわるべき。&lt;code&gt;object-type:id&lt;/code&gt; みたいな形が有効。
+
+&lt;ul&gt;
+&lt;li&gt;e.g.
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;user:1000&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;comment:1234:reply.to&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;comment:1000:reply-to&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;コマンド&#34;&gt;コマンド&lt;/h2&gt;
+
+&lt;h3 id=&#34;型を取得&#34;&gt;型を取得&lt;/h3&gt;
+
+&lt;p&gt;返り値は &lt;code&gt;string&lt;/code&gt; 、&lt;code&gt;list&lt;/code&gt;、&lt;code&gt;set&lt;/code&gt;、&lt;code&gt;zset&lt;/code&gt;、&lt;code&gt;hash&lt;/code&gt;、&lt;code&gt;none&lt;/code&gt; など&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;gt; type &amp;quot;キー&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;削除&#34;&gt;削除&lt;/h3&gt;
+
+&lt;p&gt;削除されると &lt;code&gt;1&lt;/code&gt;、 削除されない、もしくはキーが存在しない場合は &lt;code&gt;0&lt;/code&gt;を返す&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;gt; del &amp;quot;キー&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;存在判定&#34;&gt;存在判定&lt;/h3&gt;
+
+&lt;p&gt;DBに存在すれば &lt;code&gt;1&lt;/code&gt;、存在しない場合 &lt;code&gt;0&lt;/code&gt; を返す&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;gt; exists &amp;quot;キー&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

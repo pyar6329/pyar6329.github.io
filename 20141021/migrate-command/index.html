@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="@pyar6329">
+<meta name="description" content="tech blog">
+<meta name="generator" content="Hugo 0.19" />
+<title>migrateコマンドを省略する</title>
+<link rel="shortcut icon" href="https://b.pyar.bz/images/favicon.ico">
+<link rel="stylesheet" href="https://b.pyar.bz/css/style.css">
+<link rel="stylesheet" href="https://b.pyar.bz/css/highlight.css">
+
+<link rel="stylesheet" href="https://b.pyar.bz/css/layout.css">
+
+
+
+<link rel="stylesheet" href="https://b.pyar.bz/css/monosocialiconsfont.css">
+
+
+
+<link href="https://b.pyar.bz/index.xml" rel="alternate" type="application/rss+xml" title="pyar.bz" />
+
+
+<meta property="og:title" content="migrateコマンドを省略する" />
+<meta property="og:description" content="railsでDBに反映するにはmigrateするが、リセットして一からやり直したいことがある。 その時は普通以下のコマンドを入力する。
+$ rake db:drop $ rake db:create $ rake db:migrate  ただし3回も打つのは面倒臭い。なので一行で打つとこうなる。
+$ rake db:drop db:create db:migrate  さらにこれはもっと省略できて、以下のコマンドで実現できる。
+$ rake db:migrate:reset  " />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://b.pyar.bz/20141021/migrate-command" />
+
+
+
+<meta property="article:published_time" content="2014-10-21T20:16:03-09:00"/>
+<meta property="article:modified_time" content="2014-10-21T20:16:03-09:00"/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="migrateコマンドを省略する">
+<meta itemprop="description" content="railsでDBに反映するにはmigrateするが、リセットして一からやり直したいことがある。 その時は普通以下のコマンドを入力する。
+$ rake db:drop $ rake db:create $ rake db:migrate  ただし3回も打つのは面倒臭い。なので一行で打つとこうなる。
+$ rake db:drop db:create db:migrate  さらにこれはもっと省略できて、以下のコマンドで実現できる。
+$ rake db:migrate:reset  ">
+
+
+<meta itemprop="dateModified" content="2014-10-21T20:16:03-09:00" />
+<meta itemprop="wordCount" content="21">
+
+
+
+<meta itemprop="keywords" content="programming,ネットワーク,プログラミング,環境構築,開発手法,api,basic,binstubs,capybara,coffee,command,config,controller,datetime,db,erb,er図,factory_girl,foreigner,gem,get,git,github,github-flow,guard,haml,has_one,heroku,intellij,ip,ipoe,ipv4,ipv6,isp,java,java8,jbuilder,json,jst,kvs,less,mac,match,migrate,model,network,newrelic,nosql,oreilly,parse,ping,postgres,postgresql,production,pry,public,rails,rails4,rake,redis,routing,rspec,ruby,sass,scaffold,scss,slim,speedtest,spring,table,test,timestamp,timezone,travis,type,uri,url,utc,vagrant,vne,yaml,オライリー,グローバル参照,コマンド,スリープ,チーム,テーブル,デプロイ,パース,メモ,ルーティング,図解,外部キー,外部キー制約,外部キー嫌い,多対多,時間,環境変数," />
+
+
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="migrateコマンドを省略する"/>
+<meta name="twitter:title" content="migrateコマンドを省略する"/>
+<meta name="twitter:description" content="railsでDBに反映するにはmigrateするが、リセットして一からやり直したいことがある。 その時は普通以下のコマンドを入力する。
+$ rake db:drop $ rake db:create $ rake db:migrate  ただし3回も打つのは面倒臭い。なので一行で打つとこうなる。
+$ rake db:drop db:create db:migrate  さらにこれはもっと省略できて、以下のコマンドで実現できる。
+$ rake db:migrate:reset  "/>
+
+
+
+    </head>
+<body>
+    <nav class="main-nav">
+	
+		<a href='https://b.pyar.bz/'> <span class="arrow">←</span>Home</a>
+	
+
+	
+
+	
+		<a class="cta" href="https://b.pyar.bz/index.xml">Subscribe</a>
+	
+</nav>
+
+    <section id="wrapper">
+        
+        
+<article class="post">
+    <header>
+        <h1>migrateコマンドを省略する</h1>
+        <h2 class="headline">
+        October 21, 2014
+        <br>
+        
+        
+            
+                <a href="https://b.pyar.bz/tags/ruby">ruby</a>
+            
+                <a href="https://b.pyar.bz/tags/rails">rails</a>
+            
+                <a href="https://b.pyar.bz/tags/rails4">rails4</a>
+            
+                <a href="https://b.pyar.bz/tags/rake">rake</a>
+            
+                <a href="https://b.pyar.bz/tags/migrate">migrate</a>
+            
+        
+        
+        </h2>
+    </header>
+    <section id="post-body">
+        <p>railsでDBに反映するにはmigrateするが、リセットして一からやり直したいことがある。
+その時は普通以下のコマンドを入力する。</p>
+
+<pre><code>$ rake db:drop
+$ rake db:create
+$ rake db:migrate
+</code></pre>
+
+<p>ただし3回も打つのは面倒臭い。なので一行で打つとこうなる。</p>
+
+<pre><code>$ rake db:drop db:create db:migrate
+</code></pre>
+
+<p>さらにこれはもっと省略できて、以下のコマンドで実現できる。</p>
+
+<pre><code>$ rake db:migrate:reset
+</code></pre>
+
+    </section>
+</article>
+
+<footer id="post-meta" class="clearfix">
+    
+    <img class="avatar" src="https://b.pyar.bz/images/avatar.png">
+    <div>
+        <span class="dark">@pyar6329</span>
+        <span>I&#39;m programmer.</span>
+    </div>
+    
+    <section id="sharing">
+        <a class="twitter" href="https://twitter.com/intent/tweet?text=https%3a%2f%2fb.pyar.bz%2f20141021%2fmigrate-command - migrate%e3%82%b3%e3%83%9e%e3%83%b3%e3%83%89%e3%82%92%e7%9c%81%e7%95%a5%e3%81%99%e3%82%8b "><span class="icon-twitter"> tweet</span></a>
+
+<a class="facebook" href="#" onclick="
+    window.open(
+      'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+      'facebook-share-dialog',
+      'width=626,height=436');
+    return false;"><span class="icon-facebook-rect"> Share</span>
+</a>
+
+    </section>
+</footer>
+
+
+
+<ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="https://b.pyar.bz/20170608/api-uri">APIのURIを短くする<aside class="dates">Jun 8 2017</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20170324/ipv6">あなたのお家の光回線速度を上げる方法<aside class="dates">Mar 24 2017</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20160628/redis-keys">redisのkeyについて調べてみた<aside class="dates">Jun 28 2016</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141027/rails-timezone">RailsでのtimezoneをUTCにする<aside class="dates">Oct 27 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141023/has-one">has-oneが動作しなかったのでclass_nameを追加した<aside class="dates">Oct 23 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/mac-postgresql-installation">macでPostgreSQLをインストールする<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/rake-db-migrate">railsで動作モードを変更する<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/foreigner">railsに外部キー制約を追加してみた<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141016/many-to-many-table">railsで多対多のテーブルを実装する<aside class="dates">Oct 16 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141016/model">railsのmodelについて調べてみた<aside class="dates">Oct 16 2014</aside></a>
+        </li>
+    
+</ul>
+
+
+
+        <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://www.github.com/pyar6329">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+        © Copyright 2017 @pyar6329
+    
+    </p>
+</footer>
+
+    </section>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://b.pyar.bz/js/main.js"></script>
+<script src="https://b.pyar.bz/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47263119-3', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+</body>
+</html>

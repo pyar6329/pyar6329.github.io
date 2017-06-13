@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>環境変数 on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/%E7%92%B0%E5%A2%83%E5%A4%89%E6%95%B0/index.xml</link>
+    <description>Recent content in 環境変数 on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/%E7%92%B0%E5%A2%83%E5%A4%89%E6%95%B0/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>NewRelicでHerokuアプリをスリープさせなくする</title>
+      <link>https://b.pyar.bz/20141015/newrelic-config</link>
+      <pubDate>Wed, 15 Oct 2014 23:31:02 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141015/newrelic-config</guid>
+      <description>&lt;p&gt;ライセンスキーを取得しておく&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://rpm.newrelic.com/applications/setup&#34;&gt;https://rpm.newrelic.com/applications/setup&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;環境変数を読み込むよう変更する&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ heroku addons:add newrelic:stark
+$ heroku config:set NEW_RELIC_APP_NAME=heroku上でのアプリ名
+$ heroku config:set NEW_RELIC_LICENSE_KEY=NewRelicのライセンスキー
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;/config/newrelic.yml&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;common: &amp;amp;default_settings
+  license_key: &amp;lt;%= ENV[&amp;quot;NEW_RELIC_LICENSE_KEY&amp;quot;] %&amp;gt;
+  app_name: &amp;lt;%= ENV[&amp;quot;NEW_RELIC_APP_NAME&amp;quot;] %&amp;gt;
+development:
+  &amp;lt;&amp;lt;: *default_settings
+  monitor_mode: true
+  app_name: &amp;lt;%= ENV[&amp;quot;NEW_RELIC_APP_NAME&amp;quot;] %&amp;gt; (Development)
+staging:
+  &amp;lt;&amp;lt;: *default_settings
+  monitor_mode: true
+  app_name: &amp;lt;%= ENV[&amp;quot;NEW_RELIC_APP_NAME&amp;quot;] %&amp;gt; (Staging)
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;URLにアクセスして、Pingを飛ばすようにする&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;newRelicのURL/アプリ名/ping_targets&lt;/code&gt;にアクセス&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;URL to monitor&lt;/code&gt;にherokuの起動URLを入力&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>travisとherokuを連携させて自動デプロイ</title>
+      <link>https://b.pyar.bz/20141015/travis-config</link>
+      <pubDate>Wed, 15 Oct 2014 23:23:10 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141015/travis-config</guid>
+      <description>&lt;p&gt;Railsを&lt;code&gt;github&lt;/code&gt;→&lt;code&gt;travis&lt;/code&gt;→&lt;code&gt;heroku&lt;/code&gt;と自動デプロイできるようにする。&lt;/p&gt;
+
+&lt;p&gt;githubから取得できるようにしておく。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://travis-ci.org/profile&#34;&gt;https://travis-ci.org/profile&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Travis用のTokenを生成する&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ heroku auth:token
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Travis用のTokenを生成したので、travis.ymlに以下のコマンドで書き込む&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ travis setup heroku
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Travisに環境変数を設定する&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ travis login --org
+$ travis env set DB_HOST ホスト名
+$ travis env set DB_DATABASE データベース名
+$ travis env set DB_PASSWORD パスワード
+$ travis env set DB_USERNAME ユーザー名
+$ travis env set DB_HOST ホスト名
+$ travis env list
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Railsで環境変数を読み込ませる&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;/config/database.yml&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;test:
+  adapter: postgresql
+  encoding: utf8
+  port: 5432
+  host: &amp;lt;%= ENV[&#39;DB_HOST&#39;] %&amp;gt;
+  database: &amp;lt;%= ENV[&#39;DB_DATABASE&#39;] %&amp;gt;
+  pool: 5
+  username: &amp;lt;%= ENV[&#39;DB_USERNAME&#39;] %&amp;gt;
+  password: &amp;lt;%= ENV[&#39;DB_PASSWORD&#39;] %&amp;gt;
+  timeout: 5000
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>herokuの環境変数を設定してrailsからDBにアクセスする</title>
+      <link>https://b.pyar.bz/20141015/heroku-config</link>
+      <pubDate>Wed, 15 Oct 2014 23:15:31 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141015/heroku-config</guid>
+      <description>&lt;p&gt;herokuのデプロイ時にDB関係でよくエラーになるのでメモ。&lt;/p&gt;
+
+&lt;p&gt;Heroku Toolbeltをインストールする&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://toolbelt.heroku.com/&#34;&gt;heroku Toolbelt&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;アプリケーションの作成をする&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://dashboard-next.heroku.com/new&#34;&gt;https://dashboard-next.heroku.com/new&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;view画面を作成しないとエラーが出るので、以下のコマンドでview画面を作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g controller Top index
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ルーティング先をTopControllerにする&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;config/routes.rb&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Rails.application.routes.draw do
+  # get &#39;top/index&#39;
+  root &#39;top#index&#39;
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;環境変数を読み込むよう変更する&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;/config/database.yml&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;production:
+  adapter: postgresql
+  encoding: utf8
+  port: 5432
+  host: &amp;lt;%= ENV[&#39;DB_HOST&#39;] %&amp;gt;
+  database: &amp;lt;%= ENV[&#39;DB_DATABASE&#39;] %&amp;gt;
+  pool: 5
+  username: &amp;lt;%= ENV[&#39;DB_USERNAME&#39;] %&amp;gt;
+  password: &amp;lt;%= ENV[&#39;DB_PASSWORD&#39;] %&amp;gt;
+  timeout: 5000
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;/config/secrets.yml&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;production:
+  secret_key_base: &amp;lt;%= ENV[&amp;quot;SECRET_KEY_BASE&amp;quot;] %&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;$ git remote add heroku git@heroku.com:アプリ名.git
+$ heroku login
+$ heroku config
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;以下のように出てくる。5432はport番号。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;postgres://ユーザー名:パスワード@ホスト名:5432/データベース名&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;以下のコマンドを入力して環境変数を設定&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ heroku config:set DB_HOST=ホスト名
+$ heroku config:set DB_DATABASE=データベース名
+$ heroku config:set DB_PASSWORD=パスワード
+$ heroku config:set DB_USERNAME=ユーザー名
+$ heroku config:set LANG=ja_JP.UTF-8
+$ heroku config:set TZ=Asia/Tokyo
+$ heroku config:set SECRET_KEY_BASE=secrets.ymlに書いてあった文字列
+$ heroku config:set RACK_ENV=production
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

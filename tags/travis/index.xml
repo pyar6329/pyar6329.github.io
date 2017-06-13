@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Travis on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/travis/index.xml</link>
+    <description>Recent content in Travis on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/travis/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>travisとherokuを連携させて自動デプロイ</title>
+      <link>https://b.pyar.bz/20141015/travis-config</link>
+      <pubDate>Wed, 15 Oct 2014 23:23:10 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141015/travis-config</guid>
+      <description>&lt;p&gt;Railsを&lt;code&gt;github&lt;/code&gt;→&lt;code&gt;travis&lt;/code&gt;→&lt;code&gt;heroku&lt;/code&gt;と自動デプロイできるようにする。&lt;/p&gt;
+
+&lt;p&gt;githubから取得できるようにしておく。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://travis-ci.org/profile&#34;&gt;https://travis-ci.org/profile&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Travis用のTokenを生成する&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ heroku auth:token
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Travis用のTokenを生成したので、travis.ymlに以下のコマンドで書き込む&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ travis setup heroku
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Travisに環境変数を設定する&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ travis login --org
+$ travis env set DB_HOST ホスト名
+$ travis env set DB_DATABASE データベース名
+$ travis env set DB_PASSWORD パスワード
+$ travis env set DB_USERNAME ユーザー名
+$ travis env set DB_HOST ホスト名
+$ travis env list
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Railsで環境変数を読み込ませる&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;/config/database.yml&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;test:
+  adapter: postgresql
+  encoding: utf8
+  port: 5432
+  host: &amp;lt;%= ENV[&#39;DB_HOST&#39;] %&amp;gt;
+  database: &amp;lt;%= ENV[&#39;DB_DATABASE&#39;] %&amp;gt;
+  pool: 5
+  username: &amp;lt;%= ENV[&#39;DB_USERNAME&#39;] %&amp;gt;
+  password: &amp;lt;%= ENV[&#39;DB_PASSWORD&#39;] %&amp;gt;
+  timeout: 5000
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

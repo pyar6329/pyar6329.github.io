@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="@pyar6329">
+<meta name="description" content="tech blog">
+<meta name="generator" content="Hugo 0.19" />
+<title>RailsでのtimezoneをUTCにする</title>
+<link rel="shortcut icon" href="https://b.pyar.bz/images/favicon.ico">
+<link rel="stylesheet" href="https://b.pyar.bz/css/style.css">
+<link rel="stylesheet" href="https://b.pyar.bz/css/highlight.css">
+
+<link rel="stylesheet" href="https://b.pyar.bz/css/layout.css">
+
+
+
+<link rel="stylesheet" href="https://b.pyar.bz/css/monosocialiconsfont.css">
+
+
+
+<link href="https://b.pyar.bz/index.xml" rel="alternate" type="application/rss+xml" title="pyar.bz" />
+
+
+<meta property="og:title" content="RailsでのtimezoneをUTCにする" />
+<meta property="og:description" content="Railsで時間情報を扱う場合、JSTだとグローバル対応した時にいろいろ面倒。
+なのでデータ情報は全てUTCで扱って、取得するときのみJSTに変換するようにする。
+注意点としては以下の通り。
+ modelでdatetime型に情報を渡す場合、ActiveSupport::TimeWithZone型で渡しておく。 modelでdatetime型から情報を受け取る場合、JST時間に変換する。 現在時刻を扱う場合、Time.nowは使わずにTime.zone.nowを使う。  設定 日本在住の場合、初期設定時は以下のようになっている。
+   種類 初期値     Rails UTC   Rails ActiveRecord UTC   Heroku UTC   Heroku Postgres UTC   Amazon RDS UTC   OS JST   Homebrew(PostgreSQL) JST    Rails、Heroku、RDS、OS辺りは特に設定はいらない。
+自分のPCにpostgreSQLをインストールした場合はtimezoneをUTCに設定しておく。
+例 以下のplaysテーブルを例として考える。
+まずmodelを作成する。
+$ rails g model play played_at:datetime  現在の時間を渡す場合 class Play &lt; ActiveRecord::Base play = Play." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://b.pyar.bz/20141027/rails-timezone" />
+
+
+
+<meta property="article:published_time" content="2014-10-27T18:38:11-09:00"/>
+<meta property="article:modified_time" content="2014-10-27T18:38:11-09:00"/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="RailsでのtimezoneをUTCにする">
+<meta itemprop="description" content="Railsで時間情報を扱う場合、JSTだとグローバル対応した時にいろいろ面倒。
+なのでデータ情報は全てUTCで扱って、取得するときのみJSTに変換するようにする。
+注意点としては以下の通り。
+ modelでdatetime型に情報を渡す場合、ActiveSupport::TimeWithZone型で渡しておく。 modelでdatetime型から情報を受け取る場合、JST時間に変換する。 現在時刻を扱う場合、Time.nowは使わずにTime.zone.nowを使う。  設定 日本在住の場合、初期設定時は以下のようになっている。
+   種類 初期値     Rails UTC   Rails ActiveRecord UTC   Heroku UTC   Heroku Postgres UTC   Amazon RDS UTC   OS JST   Homebrew(PostgreSQL) JST    Rails、Heroku、RDS、OS辺りは特に設定はいらない。
+自分のPCにpostgreSQLをインストールした場合はtimezoneをUTCに設定しておく。
+例 以下のplaysテーブルを例として考える。
+まずmodelを作成する。
+$ rails g model play played_at:datetime  現在の時間を渡す場合 class Play &lt; ActiveRecord::Base play = Play.">
+
+
+<meta itemprop="dateModified" content="2014-10-27T18:38:11-09:00" />
+<meta itemprop="wordCount" content="93">
+
+
+
+<meta itemprop="keywords" content="programming,ネットワーク,プログラミング,環境構築,開発手法,api,basic,binstubs,capybara,coffee,command,config,controller,datetime,db,erb,er図,factory_girl,foreigner,gem,get,git,github,github-flow,guard,haml,has_one,heroku,intellij,ip,ipoe,ipv4,ipv6,isp,java,java8,jbuilder,json,jst,kvs,less,mac,match,migrate,model,network,newrelic,nosql,oreilly,parse,ping,postgres,postgresql,production,pry,public,rails,rails4,rake,redis,routing,rspec,ruby,sass,scaffold,scss,slim,speedtest,spring,table,test,timestamp,timezone,travis,type,uri,url,utc,vagrant,vne,yaml,オライリー,グローバル参照,コマンド,スリープ,チーム,テーブル,デプロイ,パース,メモ,ルーティング,図解,外部キー,外部キー制約,外部キー嫌い,多対多,時間,環境変数," />
+
+
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="RailsでのtimezoneをUTCにする"/>
+<meta name="twitter:title" content="RailsでのtimezoneをUTCにする"/>
+<meta name="twitter:description" content="Railsで時間情報を扱う場合、JSTだとグローバル対応した時にいろいろ面倒。
+なのでデータ情報は全てUTCで扱って、取得するときのみJSTに変換するようにする。
+注意点としては以下の通り。
+ modelでdatetime型に情報を渡す場合、ActiveSupport::TimeWithZone型で渡しておく。 modelでdatetime型から情報を受け取る場合、JST時間に変換する。 現在時刻を扱う場合、Time.nowは使わずにTime.zone.nowを使う。  設定 日本在住の場合、初期設定時は以下のようになっている。
+   種類 初期値     Rails UTC   Rails ActiveRecord UTC   Heroku UTC   Heroku Postgres UTC   Amazon RDS UTC   OS JST   Homebrew(PostgreSQL) JST    Rails、Heroku、RDS、OS辺りは特に設定はいらない。
+自分のPCにpostgreSQLをインストールした場合はtimezoneをUTCに設定しておく。
+例 以下のplaysテーブルを例として考える。
+まずmodelを作成する。
+$ rails g model play played_at:datetime  現在の時間を渡す場合 class Play &lt; ActiveRecord::Base play = Play."/>
+
+
+
+    </head>
+<body>
+    <nav class="main-nav">
+	
+		<a href='https://b.pyar.bz/'> <span class="arrow">←</span>Home</a>
+	
+
+	
+
+	
+		<a class="cta" href="https://b.pyar.bz/index.xml">Subscribe</a>
+	
+</nav>
+
+    <section id="wrapper">
+        
+        
+<article class="post">
+    <header>
+        <h1>RailsでのtimezoneをUTCにする</h1>
+        <h2 class="headline">
+        October 27, 2014
+        <br>
+        
+        
+            
+                <a href="https://b.pyar.bz/tags/ruby">ruby</a>
+            
+                <a href="https://b.pyar.bz/tags/rails">rails</a>
+            
+                <a href="https://b.pyar.bz/tags/rails4">rails4</a>
+            
+                <a href="https://b.pyar.bz/tags/timezone">timezone</a>
+            
+                <a href="https://b.pyar.bz/tags/utc">UTC</a>
+            
+                <a href="https://b.pyar.bz/tags/jst">JST</a>
+            
+                <a href="https://b.pyar.bz/tags/datetime">datetime</a>
+            
+                <a href="https://b.pyar.bz/tags/timestamp">timestamp</a>
+            
+                <a href="https://b.pyar.bz/tags/%E6%99%82%E9%96%93">時間</a>
+            
+        
+        
+        </h2>
+    </header>
+    <section id="post-body">
+        
+
+<p>Railsで時間情報を扱う場合、JSTだとグローバル対応した時にいろいろ面倒。</p>
+
+<p>なのでデータ情報は全てUTCで扱って、取得するときのみJSTに変換するようにする。</p>
+
+<p>注意点としては以下の通り。</p>
+
+<ul>
+<li>modelで<code>datetime型</code>に情報を渡す場合、<code>ActiveSupport::TimeWithZone</code>型で渡しておく。</li>
+<li>modelで<code>datetime型</code>から情報を受け取る場合、JST時間に変換する。</li>
+<li>現在時刻を扱う場合、<code>Time.now</code>は使わずに<code>Time.zone.now</code>を使う。</li>
+</ul>
+
+<h2 id="設定">設定</h2>
+
+<p>日本在住の場合、初期設定時は以下のようになっている。</p>
+
+<table>
+<thead>
+<tr>
+<th align="left">種類</th>
+<th align="left">初期値</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="left">Rails</td>
+<td align="left">UTC</td>
+</tr>
+
+<tr>
+<td align="left">Rails ActiveRecord</td>
+<td align="left">UTC</td>
+</tr>
+
+<tr>
+<td align="left">Heroku</td>
+<td align="left">UTC</td>
+</tr>
+
+<tr>
+<td align="left">Heroku Postgres</td>
+<td align="left">UTC</td>
+</tr>
+
+<tr>
+<td align="left">Amazon RDS</td>
+<td align="left">UTC</td>
+</tr>
+
+<tr>
+<td align="left">OS</td>
+<td align="left">JST</td>
+</tr>
+
+<tr>
+<td align="left">Homebrew(PostgreSQL)</td>
+<td align="left">JST</td>
+</tr>
+</tbody>
+</table>
+
+<p>Rails、Heroku、RDS、OS辺りは特に設定はいらない。</p>
+
+<p>自分のPCにpostgreSQLをインストールした場合は<a href="http://b.pyar.bz/blog/2014/10/21/mac-postgresql-installation">timezoneをUTCに設定しておく</a>。</p>
+
+<h2 id="例">例</h2>
+
+<p>以下のplaysテーブルを例として考える。</p>
+
+<p><img src="https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/timezone/plays.png"></p>
+
+<p>まずmodelを作成する。</p>
+
+<pre><code>$ rails g model play played_at:datetime
+</code></pre>
+
+<h3 id="現在の時間を渡す場合">現在の時間を渡す場合</h3>
+
+<pre><code>class Play &lt; ActiveRecord::Base
+  play = Play.new()
+  play.played_at = Time.zone.now
+  play.save
+end
+</code></pre>
+
+<h3 id="文字列の時間を渡す場合">文字列の時間を渡す場合</h3>
+
+<pre><code>class Play &lt; ActiveRecord::Base
+  d_time = &quot;Mon, 27 Oct 2014 17:44:24 +0900&quot;
+  played_at = DateTime.strptime(d_time, '%a, %d %b %Y %T %z').in_time_zone
+
+  play = Play.new()
+  hoge.played_at = played_at
+  play.save
+end
+</code></pre>
+
+<h3 id="modelから時間を取得する場合">modelから時間を取得する場合</h3>
+
+<pre><code>class Play &lt; ActiveRecord::Base
+  play1 = Play.find(1)
+  played_time = play1.played_at.in_time_zone('Tokyo')
+end
+</code></pre>
+
+    </section>
+</article>
+
+<footer id="post-meta" class="clearfix">
+    
+    <img class="avatar" src="https://b.pyar.bz/images/avatar.png">
+    <div>
+        <span class="dark">@pyar6329</span>
+        <span>I&#39;m programmer.</span>
+    </div>
+    
+    <section id="sharing">
+        <a class="twitter" href="https://twitter.com/intent/tweet?text=https%3a%2f%2fb.pyar.bz%2f20141027%2frails-timezone - Rails%e3%81%a7%e3%81%aetimezone%e3%82%92UTC%e3%81%ab%e3%81%99%e3%82%8b "><span class="icon-twitter"> tweet</span></a>
+
+<a class="facebook" href="#" onclick="
+    window.open(
+      'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+      'facebook-share-dialog',
+      'width=626,height=436');
+    return false;"><span class="icon-facebook-rect"> Share</span>
+</a>
+
+    </section>
+</footer>
+
+
+
+<ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="https://b.pyar.bz/20170608/api-uri">APIのURIを短くする<aside class="dates">Jun 8 2017</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20170324/ipv6">あなたのお家の光回線速度を上げる方法<aside class="dates">Mar 24 2017</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20160628/redis-keys">redisのkeyについて調べてみた<aside class="dates">Jun 28 2016</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141023/has-one">has-oneが動作しなかったのでclass_nameを追加した<aside class="dates">Oct 23 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/mac-postgresql-installation">macでPostgreSQLをインストールする<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/migrate-command">migrateコマンドを省略する<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/rake-db-migrate">railsで動作モードを変更する<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/foreigner">railsに外部キー制約を追加してみた<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141016/many-to-many-table">railsで多対多のテーブルを実装する<aside class="dates">Oct 16 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141016/model">railsのmodelについて調べてみた<aside class="dates">Oct 16 2014</aside></a>
+        </li>
+    
+</ul>
+
+
+
+        <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://www.github.com/pyar6329">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+        © Copyright 2017 @pyar6329
+    
+    </p>
+</footer>
+
+    </section>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://b.pyar.bz/js/main.js"></script>
+<script src="https://b.pyar.bz/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47263119-3', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+</body>
+</html>

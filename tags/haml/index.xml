@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Haml on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/haml/index.xml</link>
+    <description>Recent content in Haml on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/haml/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>railsでよく出てくる、似たようなものを調べてみた。</title>
+      <link>https://b.pyar.bz/20141016/same-rails</link>
+      <pubDate>Thu, 16 Oct 2014 00:08:13 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141016/same-rails</guid>
+      <description>
+
+&lt;p&gt;railsで調べていると、よく似たものが出てくる。わかりづらいのでメモ。&lt;/p&gt;
+
+&lt;h3 id=&#34;html&#34;&gt;HTML&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;erb
+
+&lt;ul&gt;
+&lt;li&gt;デフォルトのやつ。&lt;/li&gt;
+&lt;li&gt;基本はhtmlそのもの。&lt;/li&gt;
+&lt;li&gt;ruby埋め込みは&lt;code&gt;&amp;lt;%= %&amp;gt;&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;haml(yaml)
+
+&lt;ul&gt;
+&lt;li&gt;ちょっとふるいやつ。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;&amp;lt;&amp;gt;&lt;/code&gt;の代わりに&lt;code&gt;%&lt;/code&gt;を用いる&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;slim
+
+&lt;ul&gt;
+&lt;li&gt;新しいやつ。&lt;/li&gt;
+&lt;li&gt;cssやjqueryと記法が似ている。&lt;/li&gt;
+&lt;li&gt;classは&lt;code&gt;.&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;idは&lt;code&gt;#&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;ruby埋め込みは&lt;code&gt;=&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;gem &#39;slim-rails&#39;&lt;/code&gt;でインストール&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;javascript&#34;&gt;javascript&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;coffee scrpit&lt;/li&gt;
+&lt;li&gt;type script&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;css&#34;&gt;CSS&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;scss
+
+&lt;ul&gt;
+&lt;li&gt;コンパイラはruby。デフォルト。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;sass
+
+&lt;ul&gt;
+&lt;li&gt;デフォルトで使えるが、拡張子を&lt;code&gt;.sass&lt;/code&gt;変更する。&lt;/li&gt;
+&lt;li&gt;scssから&lt;code&gt;{}&lt;/code&gt;が取れた感じ。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;less
+
+&lt;ul&gt;
+&lt;li&gt;コンパイラはjavascript。&lt;/li&gt;
+&lt;li&gt;gemに&lt;code&gt;rubyracer&lt;/code&gt;が必要&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;gem&#34;&gt;gem&lt;/h3&gt;
+
+&lt;h4 id=&#34;処理の高速化&#34;&gt;処理の高速化&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/rails/spring&#34;&gt;spring&lt;/a&gt; rails4のデフォ。最近はこれ。
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/jonleighton/spring-commands-rspec&#34;&gt;spring-commands-rspec&lt;/a&gt; springにrspecを対応させる。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;zeus 古いやつ&lt;/li&gt;
+&lt;li&gt;spork 古いやつ&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;変更の監視&#34;&gt;変更の監視&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/guard/guard&#34;&gt;guard&lt;/a&gt; 画面をリロードさせたりrspecを走らせたり
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/guard/guard-livereload&#34;&gt;guard-livereload&lt;/a&gt; ブラウザをリロード&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/guard/guard-rspec&#34;&gt;guard-rspec&lt;/a&gt; テストを自動で走らせる&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/mknapik/guard-spring&#34;&gt;guard-spring&lt;/a&gt; springを呼び出す&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;デバッグ&#34;&gt;デバッグ&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/rweng/pry-rails&#34;&gt;pry-rails&lt;/a&gt; irbの強化版ipythonみたいなもん。rails consoleでも動作する。
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/deivid-rodriguez/pry-byebug&#34;&gt;pry-byebug&lt;/a&gt; pry中にデバッグできる。ブレイクポイントを設置したり。ruby2ではこっち&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/nixme/pry-debugger&#34;&gt;pry-debugger&lt;/a&gt; pry中にデバッグできる。ブレイクポイントを設置したり。ruby2では動作しない&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;tdd&#34;&gt;TDD&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/rspec/rspec-rails&#34;&gt;rspec-rails&lt;/a&gt; 言わずもがなrspec本体&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/thoughtbot/factory_girl_rails&#34;&gt;factory_girl_rails&lt;/a&gt; テストDBにデータを用意できる。主にmodel側のテスト。&lt;/li&gt;
+&lt;li&gt;fixture →factory_girlと同じ。factory_girlのほうが上&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/jnicklas/capybara&#34;&gt;capybara&lt;/a&gt; 操作やフォーム入力などをエミュレートしてくれる。主にview側のテスト。APIには向かない。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;binstub&#34;&gt;binstub&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;railsアプリ/binに実行ファイルを置いてくれる。&lt;code&gt;bundle install --binstubs path&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

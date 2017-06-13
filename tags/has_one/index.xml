@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Has_one on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/has_one/index.xml</link>
+    <description>Recent content in Has_one on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/has_one/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>has-oneが動作しなかったのでclass_nameを追加した</title>
+      <link>https://b.pyar.bz/20141023/has-one</link>
+      <pubDate>Thu, 23 Oct 2014 17:01:54 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141023/has-one</guid>
+      <description>&lt;p&gt;次のようなmodelがある。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Detail &amp;lt; ActiveRecord::Base
+  has_one :files, :dependent =&amp;gt; :destroy
+  has_one :folders, :dependent =&amp;gt; :destroy
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;has_manyはいいんだけど、has_oneはこのままだと動作しない。
+なので&lt;code&gt;class_name&lt;/code&gt;を追加する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Detail &amp;lt; ActiveRecord::Base
+  has_one :files, :class_name =&amp;gt; &#39;File&#39;, :dependent =&amp;gt; :destroy
+  has_one :folders, :class_name =&amp;gt; &#39;Folder&#39;, :dependent =&amp;gt; :destroy
+end
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

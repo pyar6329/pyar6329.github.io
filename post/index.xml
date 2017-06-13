@@ -1,0 +1,2296 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on pyar.bz</title>
+    <link>https://b.pyar.bz/post/index.xml</link>
+    <description>Recent content in Posts on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <lastBuildDate>Thu, 08 Jun 2017 00:11:52 -0900</lastBuildDate>
+    <atom:link href="https://b.pyar.bz/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>APIのURIを短くする</title>
+      <link>https://b.pyar.bz/20170608/api-uri</link>
+      <pubDate>Thu, 08 Jun 2017 00:11:52 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20170608/api-uri</guid>
+      <description>
+
+&lt;p&gt;&lt;a href=&#34;http://amzn.to/2sFDy2E&#34;&gt;Web API: The Good Parts&lt;/a&gt;を読んだのでその整理&lt;/p&gt;
+
+&lt;h1 id=&#34;uriを短くする&#34;&gt;URIを短くする&lt;/h1&gt;
+
+&lt;p&gt;APIのURI設計をしていると、親子関係があるデータを扱う時URIが長くなる&lt;br /&gt;
+例えば&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;blogが複数の記事をもつ&lt;/li&gt;
+&lt;li&gt;記事は複数のコメントを持つ&lt;/li&gt;
+&lt;li&gt;コメントは複数の返信コメントをもつ&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;集合で表すと &lt;code&gt;blogs ∋ articles ∋ comments ∋ replies&lt;/code&gt;&lt;br /&gt;
+railsだと以下のようになる&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ rails routes
+      Prefix Verb   URI Pattern                                                Controller#Action
+     replies GET    /blogs/:id/articles/:id/comments/:id/replies(.:format)     replies#index
+             POST   /blogs/:id/articles/:id/comments/:id/replies(.:format)     replies#create
+       reply GET    /blogs/:id/articles/:id/comments/:id/replies/:id(.:format) replies#show
+             PATCH  /blogs/:id/articles/:id/comments/:id/replies/:id(.:format) replies#update
+             PUT    /blogs/:id/articles/:id/comments/:id/replies/:id(.:format) replies#update
+             DELETE /blogs/:id/articles/:id/comments/:id/replies/:id(.:format) replies#destroy
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;とてもじゃないが、使えたものじゃない…&lt;br /&gt;
+Herokuではどうしているかというと、&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Limit nesting depth by preferring to locate resources at the root path. Use nesting to indicate scoped collections. For example, for the case above where a dyno belongs to an app belongs to an org:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;/orgs/{org_id}
+/orgs/{org_id}/apps
+/apps/{app_id}
+/apps/{app_id}/dynos
+/dynos/{dyno_id}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://geemus.gitbooks.io/http-api-design/content/en/requests/minimize-path-nesting.html&#34;&gt;Minimize path nesting by Heroku(HTTP API Design Guide)&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;つまり、ネストの深さを制限するのと親子は集合を表すのが大事&lt;/p&gt;
+
+&lt;h1 id=&#34;実際にやってみる&#34;&gt;実際にやってみる&lt;/h1&gt;
+
+&lt;p&gt;blogが複数の記事を持つものとする&lt;br /&gt;
+集合で表すと &lt;code&gt;blogs ∋ articles&lt;/code&gt;&lt;br /&gt;
+articleをrailsでscaffoldすると次のリソースになる&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ rails routes
+      Prefix Verb   URI Pattern             Controller#Action
+    articles GET    /articles(.:format)     articles#index
+             POST   /articles(.:format)     articles#create
+     article GET    /articles/:id(.:format) articles#show
+             PATCH  /articles/:id(.:format) articles#update
+             PUT    /articles/:id(.:format) articles#update
+             DELETE /articles/:id(.:format) articles#destroy
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;これが親子関係になると次のリソースになる&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ rails routes
+      Prefix Verb   URI Pattern                       Controller#Action
+    articles GET    /blogs/:id/articles(.:format)     articles#index
+             POST   /blogs/:id/articles(.:format)     articles#create
+     article GET    /blogs/:id/articles/:id(.:format) articles#show
+             PATCH  /blogs/:id/articles/:id(.:format) articles#update
+             PUT    /blogs/:id/articles/:id(.:format) articles#update
+             DELETE /blogs/:id/articles/:id(.:format) articles#destroy
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;が、ネストが深い&lt;br /&gt;
+ここでHerokuのURI設計を参考にするとこうなる&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ rails routes
+      Prefix Verb   URI Pattern                       Controller#Action
+    articles GET    /blogs/:id/articles(.:format)     articles#index
+             POST   /blogs/:id/articles(.:format)     articles#create
+     article GET    /articles/:id(.:format)           articles#show
+             PATCH  /articles/:id(.:format)           articles#update
+             PUT    /articles/:id(.:format)           articles#update
+             DELETE /articles/:id(.:format)           articles#destroy
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;新規作成と一覧取得は親子関係の状態で持ってくる, 作成するのでそのまま。&lt;br /&gt;
+詳細取得と更新、削除は一意な値で判断して編集するので、省略できる。&lt;br /&gt;
+blogに属さない記事は存在しないので、こんな感じで良さそう。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>あなたのお家の光回線速度を上げる方法</title>
+      <link>https://b.pyar.bz/20170324/ipv6</link>
+      <pubDate>Fri, 24 Mar 2017 00:19:00 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20170324/ipv6</guid>
+      <description>
+
+&lt;h2 id=&#34;目次&#34;&gt;目次&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ネットワークの基礎知識&lt;/li&gt;
+&lt;li&gt;回線速度の測定方法&lt;/li&gt;
+&lt;li&gt;回線速度が遅い原因を特定する&lt;/li&gt;
+&lt;li&gt;なぜ遅いのか&lt;/li&gt;
+&lt;li&gt;遅くなった原因&lt;/li&gt;
+&lt;li&gt;どうすれば速くなるか&lt;/li&gt;
+&lt;li&gt;IPv6+ IPoEを使う&lt;/li&gt;
+&lt;li&gt;使われている事例&lt;/li&gt;
+&lt;li&gt;実際にどうすればいいか&lt;/li&gt;
+&lt;li&gt;結論&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;ネットワークの基礎知識&#34;&gt;ネットワークの基礎知識&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/000_network.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ONU(光回線終端装置、モデム)
+
+&lt;ul&gt;
+&lt;li&gt;光信号とデジタル信号を変換するもの&lt;/li&gt;
+&lt;li&gt;ルータと一体型になってるものもある&lt;/li&gt;
+&lt;li&gt;壁に埋め込まれているものもある&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;ルータ
+
+&lt;ul&gt;
+&lt;li&gt;普通1ネットワークに対し1台しか接続出来ないが、複数台接続できるようにするもの&lt;/li&gt;
+&lt;li&gt;PPPoEやNAT、DHCPなどがある&lt;/li&gt;
+&lt;li&gt;ONUと一体型のものもある&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;PPPoE
+
+&lt;ul&gt;
+&lt;li&gt;プロバイダと接続するための認証&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;NAT
+
+&lt;ul&gt;
+&lt;li&gt;外部ネットワークと内部ネットワークのIPアドレスを変換するもの&lt;/li&gt;
+&lt;li&gt;内部で外部ネットワークのIPとは別のIPを割り振ることで、IP枯渇問題を解決した&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;DHCP
+
+&lt;ul&gt;
+&lt;li&gt;IPアドレスを自動的に割り振るもの&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;回線速度の測定方法&#34;&gt;回線速度の測定方法&lt;/h2&gt;
+
+&lt;p&gt;speed testのサイトを使い、昼と夜(18:00頃)の速度を計測する
+速度計測サイトのサーバが遠いと結果も遅くなるので、できるだけ国内のテストサービスをつかう
+以下がよく使われる計測サイト。別に他のサイトでもいい&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.usen.com/speedtest02/&#34;&gt;USEN&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.musen-lan.com/speed/&#34;&gt;BNR&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;基本的に、昼は速く、夜は遅い&lt;/p&gt;
+
+&lt;p&gt;測定結果が100Mbps契約の場合、20Mbps以上出ていなかったら遅い&lt;/p&gt;
+
+&lt;p&gt;また、&lt;a href=&#34;http://netspeed.studio-radish.com/cgi-bin/netspeed/openresult/openresult.cgi&#34;&gt;自分の住んでいる地区の速度と比較してみる&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;上記のspeed testをして、速度が遅いかどうかを判断する&lt;/p&gt;
+
+&lt;p&gt;ちなみに自分の家の場合(フレッツ光ネクストマンションタイプ、 so-net 100Mbps契約、PC直繋ぎ有線LAN)&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/001_low_speed.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://ja.wikipedia.org/wiki/ベストエフォート&#34;&gt;ベストエフォート&lt;/a&gt;とはいえ、452.23Kbps(= 0.45Mbps)&amp;hellip;あれ1/200以下？&lt;/p&gt;
+
+&lt;p&gt;この速度は、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=hzHOzAHENzk&#34;&gt;画像が昔みたく表示される&lt;/a&gt;場合がある&lt;/li&gt;
+&lt;li&gt;画像がダウンロードされない&lt;/li&gt;
+&lt;li&gt;ゲームなんて画像ないようなもの&lt;/li&gt;
+&lt;li&gt;git cloneがタイムアウトする&lt;/li&gt;
+&lt;li&gt;今のスマホテザリング(LTE)でも、20Mbpsは行く&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;回線速度が遅い原因を特定する&#34;&gt;回線速度が遅い原因を特定する&lt;/h2&gt;
+
+&lt;p&gt;speed test後、速度が遅いとわかったら原因を特定していく&lt;/p&gt;
+
+&lt;p&gt;まず有線LAN接続なのか、無線LAN接続なのかを判断する&lt;/p&gt;
+
+&lt;p&gt;無線LAN接続の場合は、有線LANで速度を再び計測する。
+ここで速度が向上したらルータの無線LANの部分が原因。11ac対応のルータ(asus, tp-link, NEC等)を買うべき。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/002_no_wifi.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;有線LANで速度が遅いと思ったら、今度はルータを外してPCとONU(光回線終端装置、モデム)を直繋ぎして測定する。
+ここで速度が向上したらルータの有線LANの部分、ケーブル、もしくはPCのLANが古いのが原因。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ルータは1000BASE-T(=1000Mbps)対応のもの(airmac expressとかは100BASE-Tなので遅い)&lt;/li&gt;
+&lt;li&gt;LANケーブルはcat5e もしくは cat6のものを買う。cat7は無駄だから買わないほうがいい。&lt;/li&gt;
+&lt;li&gt;PC側も1000BASE-T対応のものにする(大体は対応している)。USBで有線LANにしている場合は、USB3のものやThunderboltのものにする。
+
+&lt;ul&gt;
+&lt;li&gt;速度は Thunderbolt &amp;gt; USB3 &amp;gt;&amp;gt;&amp;gt; USB2(これだけ100BASE-T)&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/003_no_router.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;それでも速度が遅い場合は、プロバイダを介さない速度テスト(フレッツ光のNGNテスト)をしてみる。&lt;/p&gt;
+
+&lt;p&gt;c.f. &lt;a href=&#34;https://flets.com/next/square/connectv4/win/&#34;&gt;NGNテストのサイトの使い方&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/004_ngn_test.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;ONUとPCを直繋ぎし、PC側でPPPoEでNTTを指定する&lt;/p&gt;
+
+&lt;p&gt;macの場合、以下のようになる&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/005_create_pppoe.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;左下の &lt;code&gt;+&lt;/code&gt; を押し、PPPoEを作成する&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/006_config_pppoe.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;アカウント名とパスワードを以下の表のように入力する&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;項目&lt;/th&gt;
+&lt;th&gt;設定内容&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;認証方式&lt;/td&gt;
+&lt;td&gt;PPPoE&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;プロバイダ名&lt;/td&gt;
+&lt;td&gt;任意(なんでもいい、無くても可)&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;ユーザー名&lt;/td&gt;
+&lt;td&gt;guest@v4flets-east.jp&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;パスワード&lt;/td&gt;
+&lt;td&gt;guest&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;IPアドレス&lt;/td&gt;
+&lt;td&gt;自動&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;DNS&lt;/td&gt;
+&lt;td&gt;自動&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;その後、以下のURLにアクセスすることでテストできる&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.v4flets-east.jp&#34;&gt;http://www.v4flets-east.jp&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;自分の家の場合は、ほぼ契約通りの理論値(100Mbps)が出た&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/007_ngn_test_result.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;ここでも回線が遅い場合は、ONUが古い、壊れている、もしくは光回線の配線が劣化している可能性があるので、NTTに連絡する&lt;/p&gt;
+
+&lt;h2 id=&#34;なぜ遅いのか&#34;&gt;なぜ遅いのか&lt;/h2&gt;
+
+&lt;p&gt;ここで振り返ってみる。&lt;/p&gt;
+
+&lt;p&gt;自分の環境での測定結果は以下の通りだった&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ONUは壁の中&lt;/li&gt;
+&lt;li&gt;ONUとPCは直繋ぎ&lt;/li&gt;
+&lt;li&gt;PCは2台で試したが結果は同じ&lt;/li&gt;
+&lt;li&gt;PCは1000BASE-T対応&lt;/li&gt;
+&lt;li&gt;ケーブルはcat 6&lt;/li&gt;
+&lt;li&gt;複数のケーブルで試しても結果は同じ&lt;/li&gt;
+&lt;li&gt;測定結果は0.5Mbps&lt;/li&gt;
+&lt;li&gt;別の計測サイトでも1Mbps位&lt;/li&gt;
+&lt;li&gt;NTT NGNの測定結果は99Mbpsでほぼ理論値通り&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;となると、以下のことが推測できる&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;PCは問題ない&lt;/li&gt;
+&lt;li&gt;ルータも問題ない&lt;/li&gt;
+&lt;li&gt;ONUも問題ない&lt;/li&gt;
+&lt;li&gt;ケーブルも問題ない&lt;/li&gt;
+&lt;li&gt;NTTの(物理的な)回線も問題ない&lt;/li&gt;
+&lt;li&gt;プロバイダが悪い&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/008_provider_error.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;遅くなった原因&#34;&gt;遅くなった原因&lt;/h2&gt;
+
+&lt;p&gt;なぜプロバイダが遅いのか、プロバイダに電話してみる。&lt;/p&gt;
+
+&lt;p&gt;測定結果とtracerouteの結果の値をzipで送ったり色々あって…&lt;/p&gt;
+
+&lt;p&gt;PPPoE認証サーバの終端、集約装置が混んでいることがわかった。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/009_poi.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;しかも&lt;a href=&#34;http://www2.softether.jp/jp/ethernext/overview/&#34;&gt;PPPoEサーバの管轄はプロバイダでは無くNTT&lt;/a&gt;
+プロバイダはNTTに増強をお願いするしかできない。
+しかしNTTも闇雲に増設は出来るわけがなく(コストとか)、プロバイダのユーザー数が一定数を超えないと増強しない。(増設例: &lt;a href=&#34;https://www.so-net.ne.jp/info/2016/sp20160310_0007.html&#34;&gt;so-net&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/010_ntt_error.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;じゃあなぜPPPoEが混んでいるか。これはある法律が関係している&lt;/p&gt;
+
+&lt;h3 id=&#34;2014年まで&#34;&gt;~ 2014年まで&lt;/h3&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;NTTのフレッツ光は2014年3月末の東西合計の加入件数が1,805万件で、FTTH市場におけるシェアは合わせて71.1%。2013年3月末から1.5ポイント減少した。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;c.f. &lt;a href=&#34;https://www.m2ri.jp/news/detail.html?id=107&#34;&gt;MM総研: ブロードバンド回線事業者の加入件数調査（2014年3月末時点）&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;光回線は高かった。プロバイダ料込みで6000円前後
+そして加入ユーザー数は減っていた&lt;/p&gt;
+
+&lt;h3 id=&#34;2015年-風向きが変わる&#34;&gt;2015年、風向きが変わる&lt;/h3&gt;
+
+&lt;p&gt;2015年、NTT法(日本電信電話株式会社等に関する法律)が改正される。&lt;/p&gt;
+
+&lt;p&gt;NTTは元国営企業であり、NTT法(第30条第2, 3項)で &lt;strong&gt;NTT東西とドコモは一体的な営業が出来ない&lt;/strong&gt; という規制を受けていた。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;2: その電気通信業務について、特定の電気通信事業者に対し、不当に優先的な取扱いをし、若しくは利益を与え、又は不当に不利な取扱いをし、若しくは不利益を与えること。
+3: 他の電気通信事業者（第百六十四条第一項各号に掲げる電気通信事業を営む者を含む。）又は電気通信設備の製造業者若しくは販売業者に対し、その業務について、不当に規律をし、又は干渉をすること。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;c.f. &lt;a href=&#34;https://dsk.or.jp/dskwiki/index.php?電気通信事業法第30条&#34;&gt;情報通信復興会: 電気通信事業法第30条&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;これが以下のように緩和される&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;2: 禁止の対象が「グループ会社に対する優遇」のみに限定
+3: 廃止&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;c.f. &lt;a href=&#34;http://www.foresight-law.gr.jp/column/backnumber/170101.html&#34;&gt;フォーサイト総合法律事務所: ICT・IoTビジネスと電気通信事業法等の一部改正について&lt;/a&gt;
+c.f. &lt;a href=&#34;http://k-tai.watch.impress.co.jp/docs/interview/639666.html&#34;&gt;総務省が進める「競争政策見直し」とは何か&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;NTTはセット販売ができるようになり、 &lt;strong&gt;docomo光&lt;/strong&gt; が解禁された。&lt;/p&gt;
+
+&lt;p&gt;docomo光は以下の特徴を持つ&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;スマホのパケットし放題の料金をセットにすることで、1台辺り500~2000円割引できる
+
+&lt;ul&gt;
+&lt;li&gt;家族で契約してる人は大幅な割引&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;docomoショップで契約できる&lt;/li&gt;
+&lt;li&gt;今までLTEだった人がwifiになったら速度は速くなる(実際は遅いんだけども)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;つまりdocomoユーザーに対し、抱き合わせで光回線を販売することでユーザー数が増えた&lt;/p&gt;
+
+&lt;p&gt;実際にどの位ユーザー数が増加したかというと、&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;2015年12月: 契約数100万件突破
+2016年6月: 契約数200万件突破
+2017年1月: 契約数300万件突破&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/011_docomo.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;c.f. &lt;a href=&#34;https://nuro光実測と評判.jp/fletshikari-osoi-hyouban/&#34;&gt;実際の速度は800M以上！ NURO光の実測や評判は？: フレッツ光 2016年 急激に遅い評判増える その原因は？&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;docomo光でいかにユーザー数が増加したかが分かる&lt;/p&gt;
+
+&lt;p&gt;このユーザー数増加に対し、PPPoEサーバの増強が追いついていない。&lt;/p&gt;
+
+&lt;p&gt;そして様々なプロバイダのPPPoEサーバは全てNTT管轄のビル内(POI)にある
+= docomoユーザーのPPPoE処理の影響が他プロバイダのPPPoE処理に影響を与える
+= プロバイダを変えても意味がない&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/012_provier_non.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;どうすれば速くなるか&#34;&gt;どうすれば速くなるか&lt;/h2&gt;
+
+&lt;p&gt;じゃあどうすればいいか。
+要はPPPoEサーバを経由しなければいい。&lt;/p&gt;
+
+&lt;p&gt;それが出来る選択肢は以下の2つのみ&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;NNTのPPPoEサーバを迂回しないプロバイダと契約する
+
+&lt;ul&gt;
+&lt;li&gt;au光
+
+&lt;ul&gt;
+&lt;li&gt;KDDIの回線を利用したサービス&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.spaaqs.ne.jp/&#34;&gt;U-NEXT光01(spaaqs光)&lt;/a&gt;
+
+&lt;ul&gt;
+&lt;li&gt;UCOMの独自回線を利用したサービス&lt;/li&gt;
+&lt;li&gt;政令指定都市の特定のマンションじゃないと無理&lt;/li&gt;
+&lt;li&gt;U-NEXT光コラボレーションはダメ&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;nuro光
+
+&lt;ul&gt;
+&lt;li&gt;NTTの回線だけど、PPPoEなどは独自網&lt;/li&gt;
+&lt;li&gt;8階建てのマンションだと契約者数4人を超えないと無理&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;IPv6 + IPoEを使う
+
+&lt;ul&gt;
+&lt;li&gt;次項で解説&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;ちなみに、上記以外の1Gbpsのプロバイダで契約したとしても、PPPoEを経由したものは今は良くてもその内同じ問題に当たる&lt;/p&gt;
+
+&lt;h2 id=&#34;ipv6-ipoeを使う&#34;&gt;IPv6+ IPoEを使う&lt;/h2&gt;
+
+&lt;h3 id=&#34;ipv6&#34;&gt;IPv6&lt;/h3&gt;
+
+&lt;p&gt;IPv6とはIPv4のIP枯渇問題を解決するために規定されたプロトコル&lt;/p&gt;
+
+&lt;p&gt;詳細は&lt;a href=&#34;https://ja.wikipedia.org/wiki/IPv6&#34;&gt;wikipedia&lt;/a&gt;等で参考にするとして、特徴を上げると&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;事実上無限のIPアドレス&lt;/li&gt;
+&lt;li&gt;IPv4と互換性がない&lt;/li&gt;
+&lt;li&gt;NATを使わないで端末同士が直接繋がる&lt;/li&gt;
+&lt;li&gt;IPsecで通信が暗号化される&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;今までは、Webアプリ(apache)やDNS、サーバ側もIPv6に対応しないと接続できなかったので普及していなかった
+枯渇問題も、NATを使えば解決できるし…&lt;/p&gt;
+
+&lt;p&gt;2015年docomo光以降NTTはNGN(Next Generation Network)、次世代ネットワークに切り替えていく方式(フレッツ光ネクスト)を提供し始めた&lt;/p&gt;
+
+&lt;p&gt;これは先程のPPPoEの速度遅いという問題を抱えているが、そのかわりにIPv6を(普及させるため) &lt;strong&gt;無料で&lt;/strong&gt; 提供してくれる&lt;/p&gt;
+
+&lt;p&gt;が、このままでは既存のサービスを見ることができない&lt;/p&gt;
+
+&lt;p&gt;そこでDS-Liteという規格が登場した&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/013_ds_lite.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;ds-lite&#34;&gt;DS-Lite&lt;/h3&gt;
+
+&lt;p&gt;DS-lite(Dual-Stack Lite)とは、RFC6333で規定された通信規格で、IPv6でカプセル化し、その中でIPv4の通信ができる(IPv4 over IPv6)
+しかも、&lt;strong&gt;通信速度はIPv6のネットワーク速度&lt;/strong&gt;になる&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/014_ds_lite_describe.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;これにより、IPv6非対応の既存のwebサイトを閲覧することができる&lt;/p&gt;
+
+&lt;p&gt;c.f &lt;a href=&#34;http://techlog.iij.ad.jp/archives/1254&#34;&gt;DS-LiteでIPv4してみませんか？&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;ipoe&#34;&gt;IPoE&lt;/h3&gt;
+
+&lt;p&gt;話を戻して、速度が遅いのはPPPoEが原因だった
+IPv6も最初はPPPoEで接続していた(IPv6 トンネル方式)&lt;/p&gt;
+
+&lt;p&gt;しかし新しい方式、IPoE(IPv6 ネイティブ方式)が登場した&lt;/p&gt;
+
+&lt;p&gt;IPoEとは IP over Ethernet(ネイティブ方式)の略で、&lt;strong&gt;PPPoEを経由しない&lt;/strong&gt;
+しかも速度制限はPPPoEでしているので、1Gbps契約じゃなくても1Gbpsが出る可能性がある(200Mbps契約など)&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/015_ipoe.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;代わりにVNE(Virtual Network Enabler)と呼ばれる、ネイティブ接続事業者(上位プロバイダ)が既存のプロバイダに変わってIPv6で接続する&lt;/p&gt;
+
+&lt;p&gt;このVNEはとても少なく、以下しかいない&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;mfeed(インターネットマルチフィード)&lt;/li&gt;
+&lt;li&gt;JPNE(日本ネットワークイネイブラー)&lt;/li&gt;
+&lt;li&gt;BBIX&lt;/li&gt;
+&lt;li&gt;ビッグローブ株式会社(BIGLOBE)&lt;/li&gt;
+&lt;li&gt;株式会社朝日ネット(ASAHI ネット)&lt;/li&gt;
+&lt;li&gt;NTT コミュニケーションズ&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;既存のプロバイダでIPv6を利用する場合、以下のようにVNEに移譲している&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;プロバイダ&lt;/th&gt;
+&lt;th&gt;VNE&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;IIJmio&lt;/td&gt;
+&lt;td&gt;mfeed&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;GMO とくとく BB&lt;/td&gt;
+&lt;td&gt;JPNE&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;21IP&lt;/td&gt;
+&lt;td&gt;JPNE&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;Yahoo! BB&lt;/td&gt;
+&lt;td&gt;BBIX&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;BIGLOBE&lt;/td&gt;
+&lt;td&gt;BIGLOBE&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;ASAHI ネット&lt;/td&gt;
+&lt;td&gt;ASAHI ネット&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;NTTCom(OCN)&lt;/td&gt;
+&lt;td&gt;NTTCom(OCN)&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;ドコモ net&lt;/td&gt;
+&lt;td&gt;mfeed&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;So-net&lt;/td&gt;
+&lt;td&gt;mfeed&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;なので、IPv6でも速度が遅い場合は、違うVNEなプロバイダに切り替える必要がある&lt;/p&gt;
+
+&lt;p&gt;c.f. &lt;a href=&#34;http://qiita.com/soprano1125/items/65295cd8c371abc6ebe8&#34;&gt;IPv6 IPoE に思いを馳せながら ISP をどうやって選定するか考える話&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;使われている事例&#34;&gt;使われている事例&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.slideshare.net/MasayukiKobayashi/545noc&#34;&gt;PyConJP 2014年&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;実際にどうすればいいか&#34;&gt;実際にどうすればいいか&lt;/h2&gt;
+
+&lt;h3 id=&#34;ipv6にする&#34;&gt;IPv6にする&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;プロバイダにIPv6を提供しているか電話で確認し、申請する
+
+&lt;ul&gt;
+&lt;li&gt;その時、ONUも対応しているか確認してくれる&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;NTTでフレッツ・v6オプションを申し込む
+
+&lt;ul&gt;
+&lt;li&gt;そこでIPv6固定やDDNSを設定もできる&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;ルータと端末(PC, スマホ、タブレット)がIPv6に対応しているものを使う&lt;/li&gt;
+&lt;li&gt;ルータは &lt;strong&gt;IPv6 パススルー&lt;/strong&gt; の機能をonにする必要がある&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;ipv6にしたあとの確認&#34;&gt;IPv6にしたあとの確認&lt;/h3&gt;
+
+&lt;p&gt;以下のサイトでIPv6で接続できているか確認できる&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://test-ipv6.com/index.html.ja_JP&#34;&gt;http://test-ipv6.com/index.html.ja_JP&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/016_test_ipv6.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;速度はIPv6対応サイトで確認する&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://speedtest6.iijmio.jp&#34;&gt;http://speedtest6.iijmio.jp&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/017_ipv6_speed.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;海外のサイトでも速度チェックできる&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://ipv6-test.com/speedtest&#34;&gt;http://ipv6-test.com/speedtest&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/018_ipv6_speed2.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;結論&#34;&gt;結論&lt;/h2&gt;
+
+&lt;p&gt;無料なので、IPv6 + IPoEを使おう&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/019_flow.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;参考になるサイト&#34;&gt;参考になるサイト&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://note.chiebukuro.yahoo.co.jp/detail/n322584&#34;&gt;NTTフレッツ光で通信速度及び応答速度を期待できるおすすめISP&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>redisのkeyについて調べてみた</title>
+      <link>https://b.pyar.bz/20160628/redis-keys</link>
+      <pubDate>Tue, 28 Jun 2016 00:03:53 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20160628/redis-keys</guid>
+      <description>
+
+&lt;h2 id=&#34;特徴&#34;&gt;特徴&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;バイナリセーフ&lt;/li&gt;
+&lt;li&gt;文字列からjpegファイルまでキーとして扱える&lt;/li&gt;
+&lt;li&gt;空文字もOK&lt;/li&gt;
+&lt;li&gt;短いほうがメモリ効率がいい。&lt;/li&gt;
+&lt;li&gt;キーの最大長は512MB&lt;/li&gt;
+&lt;li&gt;ある要素を追加するとき、対象のキーが存在しない場合は、要素の追加前に &lt;code&gt;データタイプの空集合(型が決まっていないもの)&lt;/code&gt; が作成される&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;データタイプの空集合(型が決まっていないもの)&lt;/code&gt; から全ての要素が削除されたとき、キーは自動的に削除される&lt;/li&gt;
+&lt;li&gt;空のキーに対してread-onlyのコマンドや削除するコマンドを実行すると、空集合に対しての結果が返ってくる&lt;/li&gt;
+&lt;li&gt;すでにキーが存在する場合、別のデータタイプ(型)のコマンドは実行エラーになる&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;注意点&#34;&gt;注意点&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;長すぎるキーはだめ。メモリ効率が悪く、データから検索時にキーの比較に処理が重くなる&lt;/li&gt;
+&lt;li&gt;キーをhash化すると(e.g. sha1)、メモリ使用効率とネットワーク帯域が良くなる&lt;/li&gt;
+&lt;li&gt;短すぎるキーはだめ(e.g. &lt;code&gt;user:10:following&lt;/code&gt; を &lt;code&gt;u:10:f&lt;/code&gt; などにする)。可読性が悪く、メモリ効率では誤差。&lt;/li&gt;
+&lt;li&gt;スキーマにこだわるべき。&lt;code&gt;object-type:id&lt;/code&gt; みたいな形が有効。
+
+&lt;ul&gt;
+&lt;li&gt;e.g.
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;user:1000&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;comment:1234:reply.to&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;comment:1000:reply-to&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;コマンド&#34;&gt;コマンド&lt;/h2&gt;
+
+&lt;h3 id=&#34;型を取得&#34;&gt;型を取得&lt;/h3&gt;
+
+&lt;p&gt;返り値は &lt;code&gt;string&lt;/code&gt; 、&lt;code&gt;list&lt;/code&gt;、&lt;code&gt;set&lt;/code&gt;、&lt;code&gt;zset&lt;/code&gt;、&lt;code&gt;hash&lt;/code&gt;、&lt;code&gt;none&lt;/code&gt; など&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;gt; type &amp;quot;キー&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;削除&#34;&gt;削除&lt;/h3&gt;
+
+&lt;p&gt;削除されると &lt;code&gt;1&lt;/code&gt;、 削除されない、もしくはキーが存在しない場合は &lt;code&gt;0&lt;/code&gt;を返す&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;gt; del &amp;quot;キー&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;存在判定&#34;&gt;存在判定&lt;/h3&gt;
+
+&lt;p&gt;DBに存在すれば &lt;code&gt;1&lt;/code&gt;、存在しない場合 &lt;code&gt;0&lt;/code&gt; を返す&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;gt; exists &amp;quot;キー&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>RailsでのtimezoneをUTCにする</title>
+      <link>https://b.pyar.bz/20141027/rails-timezone</link>
+      <pubDate>Mon, 27 Oct 2014 18:38:11 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141027/rails-timezone</guid>
+      <description>
+
+&lt;p&gt;Railsで時間情報を扱う場合、JSTだとグローバル対応した時にいろいろ面倒。&lt;/p&gt;
+
+&lt;p&gt;なのでデータ情報は全てUTCで扱って、取得するときのみJSTに変換するようにする。&lt;/p&gt;
+
+&lt;p&gt;注意点としては以下の通り。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;modelで&lt;code&gt;datetime型&lt;/code&gt;に情報を渡す場合、&lt;code&gt;ActiveSupport::TimeWithZone&lt;/code&gt;型で渡しておく。&lt;/li&gt;
+&lt;li&gt;modelで&lt;code&gt;datetime型&lt;/code&gt;から情報を受け取る場合、JST時間に変換する。&lt;/li&gt;
+&lt;li&gt;現在時刻を扱う場合、&lt;code&gt;Time.now&lt;/code&gt;は使わずに&lt;code&gt;Time.zone.now&lt;/code&gt;を使う。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;設定&#34;&gt;設定&lt;/h2&gt;
+
+&lt;p&gt;日本在住の場合、初期設定時は以下のようになっている。&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;初期値&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Rails&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;UTC&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Rails ActiveRecord&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;UTC&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Heroku&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;UTC&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Heroku Postgres&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;UTC&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Amazon RDS&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;UTC&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;OS&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;JST&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Homebrew(PostgreSQL)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;JST&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Rails、Heroku、RDS、OS辺りは特に設定はいらない。&lt;/p&gt;
+
+&lt;p&gt;自分のPCにpostgreSQLをインストールした場合は&lt;a href=&#34;http://b.pyar.bz/blog/2014/10/21/mac-postgresql-installation&#34;&gt;timezoneをUTCに設定しておく&lt;/a&gt;。&lt;/p&gt;
+
+&lt;h2 id=&#34;例&#34;&gt;例&lt;/h2&gt;
+
+&lt;p&gt;以下のplaysテーブルを例として考える。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/timezone/plays.png&#34;&gt;&lt;/p&gt;
+
+&lt;p&gt;まずmodelを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model play played_at:datetime
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;現在の時間を渡す場合&#34;&gt;現在の時間を渡す場合&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class Play &amp;lt; ActiveRecord::Base
+  play = Play.new()
+  play.played_at = Time.zone.now
+  play.save
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;文字列の時間を渡す場合&#34;&gt;文字列の時間を渡す場合&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class Play &amp;lt; ActiveRecord::Base
+  d_time = &amp;quot;Mon, 27 Oct 2014 17:44:24 +0900&amp;quot;
+  played_at = DateTime.strptime(d_time, &#39;%a, %d %b %Y %T %z&#39;).in_time_zone
+
+  play = Play.new()
+  hoge.played_at = played_at
+  play.save
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;modelから時間を取得する場合&#34;&gt;modelから時間を取得する場合&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class Play &amp;lt; ActiveRecord::Base
+  play1 = Play.find(1)
+  played_time = play1.played_at.in_time_zone(&#39;Tokyo&#39;)
+end
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>has-oneが動作しなかったのでclass_nameを追加した</title>
+      <link>https://b.pyar.bz/20141023/has-one</link>
+      <pubDate>Thu, 23 Oct 2014 17:01:54 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141023/has-one</guid>
+      <description>&lt;p&gt;次のようなmodelがある。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Detail &amp;lt; ActiveRecord::Base
+  has_one :files, :dependent =&amp;gt; :destroy
+  has_one :folders, :dependent =&amp;gt; :destroy
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;has_manyはいいんだけど、has_oneはこのままだと動作しない。
+なので&lt;code&gt;class_name&lt;/code&gt;を追加する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Detail &amp;lt; ActiveRecord::Base
+  has_one :files, :class_name =&amp;gt; &#39;File&#39;, :dependent =&amp;gt; :destroy
+  has_one :folders, :class_name =&amp;gt; &#39;Folder&#39;, :dependent =&amp;gt; :destroy
+end
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>macでPostgreSQLをインストールする</title>
+      <link>https://b.pyar.bz/20141021/mac-postgresql-installation</link>
+      <pubDate>Tue, 21 Oct 2014 20:20:23 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141021/mac-postgresql-installation</guid>
+      <description>
+
+&lt;p&gt;sqliteでは外部キー制約が使えるようになったが、gemの&lt;code&gt;foreigner&lt;/code&gt;では使えないらしい。なのでdevelopmentの確認用にpostgreSQLを使うことにした。&lt;/p&gt;
+
+&lt;p&gt;macでhomebrewを用いてpostgreSQLをインストールする。&lt;/p&gt;
+
+&lt;h2 id=&#34;クライアント専用として使う場合&#34;&gt;クライアント専用として使う場合&lt;/h2&gt;
+
+&lt;p&gt;自動起動はいらないのでインストールだけでOK。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ brew install postgresql
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;サーバとして使う場合&#34;&gt;サーバとして使う場合&lt;/h2&gt;
+
+&lt;p&gt;インストールする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ brew install postgresql
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;homebrewで作られた起動設定ファイルにシンボリックリンクを貼る&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ ln -sfv /usr/local/opt/postgresql/*.plist ~/Library/LaunchAgents
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ログイン時に自動起動させる。このコマンドを打った時点で起動する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ launchctl load -w ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみにログイン時に自動起動させなくする場合は以下のコマンド。このコマンドを打った時点で終了する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ launchctl unload -w ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;去年位までは&lt;code&gt;$ initdb /usr/local/var/postgres -E utf8&lt;/code&gt;ってコマンドで初期文字コードを指定していたが、2014年10月21日現在、初期値が&lt;code&gt;ja_JP.utf-8&lt;/code&gt;になっていたのでいらないっぽい。&lt;/p&gt;
+
+&lt;h2 id=&#34;設定ファイルを弄る&#34;&gt;設定ファイルを弄る&lt;/h2&gt;
+
+&lt;p&gt;shellに設定を書き込む。&lt;/p&gt;
+
+&lt;h3 id=&#34;zshの場合&#34;&gt;zshの場合&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;$ touch ~/.zprofile
+$ echo &#39;export ARCHFLAGS=&amp;quot;-arch x86_64&amp;quot;&#39; &amp;gt;&amp;gt; ~/.zprofile
+$ echo &#39;export PGDATA=&amp;quot;/usr/local/var/postgres&amp;quot;&#39; &amp;gt;&amp;gt; ~/.zprofile
+$ source ~/.zprofile
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;bashの場合&#34;&gt;bashの場合&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;$ touch ~/.bash_profile
+$ echo &#39;export ARCHFLAGS=&amp;quot;-arch x86_64&amp;quot;&#39; &amp;gt;&amp;gt; ~/.bash_profile
+$ echo &#39;export PGDATA=&amp;quot;/usr/local/var/postgres&amp;quot;&#39; &amp;gt;&amp;gt; ~/.bash_profile
+$ source ~/.bash_profile
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;ARCHFLAGS&lt;/code&gt;はgemで使う場合のみ追加。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;PGDATA&lt;/code&gt;は&lt;code&gt;$ postgres -D /usr/local/var/postgres&lt;/code&gt;で起動させるがそれを&lt;code&gt;$ postgres&lt;/code&gt;だけに省略できる。ただ自動起動の設定を使うとこのコマンドを使うことはない気がする。&lt;code&gt;launchctl load -w&lt;/code&gt;、&lt;code&gt;launchctl unload -w&lt;/code&gt;で起動、終了できるし。&lt;/p&gt;
+
+&lt;p&gt;ちなみに.zprofile, .bash_profileはログイン時に1度しか読み込まれない。このままではシェル(terminal)を閉じると反映されない。なので一度ログアウトして反映させる。&lt;/p&gt;
+
+&lt;p&gt;外部公開とかはしないので、新規にユーザーを作成したりはしない。&lt;/p&gt;
+
+&lt;h2 id=&#34;passwordの設定&#34;&gt;Passwordの設定&lt;/h2&gt;
+
+&lt;p&gt;まずpostgresにログインする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ psql postgres
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;パスワードを設定する&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;postgres=# \password
+postgres=# \q
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;このままではログイン時にパスワードを聞かれないので設定を変更する。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;変更前&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;# &amp;quot;local&amp;quot; is for Unix domain socket connections only
+local   all             all                                     trust
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            trust
+# IPv6 local connections:
+host    all             all             ::1/128                 trust
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;trustをmd5にする。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;変更後&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;# &amp;quot;local&amp;quot; is for Unix domain socket connections only
+local   all             all                                     md5
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            md5
+# IPv6 local connections:
+host    all             all             ::1/128                 md5
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;設定を反映させるためにpostgresを再起動する&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ launchctl unload -w ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+$ launchctl load -w ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;パスワードを聞かれないようにする&#34;&gt;パスワードを聞かれないようにする&lt;/h2&gt;
+
+&lt;p&gt;パスワードを設定したが、ログイン時に一々聞かれると面倒。
+なのでパスワードを設定ファイルに書いておく。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ touch ~/.pgpass
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;中には&lt;code&gt;ホスト名:ポート番号:データベース名:ユーザー名:パスワード&lt;/code&gt;のように書く。ワイルドカード&lt;code&gt;*&lt;/code&gt;でもOK。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;例&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;localhost:5432:*:pyarbz:hogepass
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみにこれは、外部にPostgresqlがある場合でも使える。アクセスするものが複数あれば、複数行書く。&lt;/p&gt;
+
+&lt;h2 id=&#34;timezoneをutcに変更する&#34;&gt;TimezoneをUTCに変更する&lt;/h2&gt;
+
+&lt;p&gt;RailsではDBにUTCとして保存し、取り出して使うときにその地域に合わせて変更した方がいいらしい。&lt;/p&gt;
+
+&lt;p&gt;また、Heroku PostgreSQLやAmazon RDSなど海外サーバを用いることが多いので、UTCに変更しておく。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;変更前&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;log_timezone = &#39;Japan&#39;
+timezone = &#39;Japan&#39;
+lc_messages = &#39;ja_JP.UTF-8&#39;
+lc_monetary = &#39;ja_JP.UTF-8&#39;
+lc_numeric = &#39;ja_JP.UTF-8&#39;
+lc_time = &#39;ja_JP.UTF-8&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;変更後&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;log_timezone = &#39;UTC&#39;
+timezone = &#39;UTC&#39;
+lc_messages = &#39;ja_JP.UTF-8&#39;
+lc_monetary = &#39;ja_JP.UTF-8&#39;
+lc_numeric = &#39;ja_JP.UTF-8&#39;
+lc_time = &#39;en_US.UTF-8&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;postgresqlコマンド集&#34;&gt;PostgreSQLコマンド集&lt;/h2&gt;
+
+&lt;h3 id=&#34;データベース&#34;&gt;データベース&lt;/h3&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;postgres内のコマンド&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;shellのコマンド&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;一覧&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\l&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;psql -l&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;作成&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;CREATE DATABASE データベース名;&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;createdb データベース名 -U 使うユーザー名&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;選択&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\c データベース名&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;psql データベース名&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;削除&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;DROP DATABASE データベース名;&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;dropdb データベース名&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&#34;テーブル&#34;&gt;テーブル&lt;/h3&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;postgres内のコマンド&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;shellのコマンド&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;一覧&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\d&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;作成&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;CREATE TABLE テーブル名(id int, name varchar(255).....);&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;削除&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;DROP TABLE products;&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&#34;ユーザー&#34;&gt;ユーザー&lt;/h3&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;postgres内のコマンド&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;shellのコマンド&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;一覧&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\du&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;作成&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;createuser -P ユーザー名;&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;作成(スーパー)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;createuser -s -P ユーザー名;&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;削除&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;dropuser ユーザー名&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;パスワード設定時のアクセス&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\password&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;psql -U postgres template1&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;パスワード変更&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;ALTER USER postgres encrypted password &#39;パスワード&#39;;&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&#34;その他&#34;&gt;その他&lt;/h3&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;postgres内のコマンド&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;shellのコマンド&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;終了&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\q&lt;/code&gt; または&lt;code&gt;ctrl+d&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;help&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\?&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>migrateコマンドを省略する</title>
+      <link>https://b.pyar.bz/20141021/migrate-command</link>
+      <pubDate>Tue, 21 Oct 2014 20:16:03 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141021/migrate-command</guid>
+      <description>&lt;p&gt;railsでDBに反映するにはmigrateするが、リセットして一からやり直したいことがある。
+その時は普通以下のコマンドを入力する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:drop
+$ rake db:create
+$ rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ただし3回も打つのは面倒臭い。なので一行で打つとこうなる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:drop db:create db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;さらにこれはもっと省略できて、以下のコマンドで実現できる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate:reset
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsで動作モードを変更する</title>
+      <link>https://b.pyar.bz/20141021/rake-db-migrate</link>
+      <pubDate>Tue, 21 Oct 2014 17:14:06 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141021/rake-db-migrate</guid>
+      <description>&lt;p&gt;テストモードで動かす&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails s -e test
+$ rake db:migrate Rails_ENV=test
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;実行環境モードで動かす&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails s -e production
+$ rake db:migrate Rails_ENV=production
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsに外部キー制約を追加してみた</title>
+      <link>https://b.pyar.bz/20141021/foreigner</link>
+      <pubDate>Tue, 21 Oct 2014 05:31:16 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141021/foreigner</guid>
+      <description>
+
+&lt;p&gt;データベースに関して調べることって、業務的な側面から、わかりづらい単語や言葉ばっかり使って理解しづらいよね。
+誰でも分かるように説明するのがプロなんだよなぁ。。。。まぁいいか。&lt;/p&gt;
+
+&lt;p&gt;プログラミングそのものに関してはそうでもないんだけどな。なので身近にあるもので例えてみる。&lt;/p&gt;
+
+&lt;h2 id=&#34;外部キー-foreign-key-とは&#34;&gt;外部キー(foreign key)とは&lt;/h2&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;リレーショナルデータベース(RDB)で、テーブルのある列に、別のテーブルの特定の列に含まれる項目しか入力できないようにする制約。また、その際に指定する列。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;参考: &lt;a href=&#34;http://e-words.jp/w/E5A496E983A8E382ADE383BC.html&#34;&gt;e-words.jp&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;うん言葉で言ってもわかりづらいｗ&lt;/p&gt;
+
+&lt;p&gt;図で表してみる。&lt;/p&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/anime2.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;この左側の赤いやつが&lt;code&gt;外部キー&lt;/code&gt;。別のテーブルの主キーを指してるでしょ？また、別のテーブルの主キーは&lt;code&gt;参照キー&lt;/code&gt;と呼ばれる。&lt;/p&gt;
+
+&lt;h2 id=&#34;外部キーの問題って&#34;&gt;外部キーの問題って？&lt;/h2&gt;
+
+&lt;p&gt;じゃあもし外部キーの参照先が更新されたり、削除されたらどうなるか。&lt;/p&gt;
+
+&lt;p&gt;animeテーブルの&lt;code&gt;id = 2&lt;/code&gt;から&lt;code&gt;id = 5&lt;/code&gt;に更新してみる。&lt;/p&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/anime3.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code&gt;anime_id = 2&lt;/code&gt;の状態ではあるけど、指している場所にデータがない。どこ指してるかわからない。&lt;/p&gt;
+
+&lt;p&gt;参照整合性が取れない。いわゆる&lt;code&gt;迷子レコード&lt;/code&gt;になる。&lt;/p&gt;
+
+&lt;h2 id=&#34;なぜ外部キー制約を使うか&#34;&gt;なぜ外部キー制約を使うか&lt;/h2&gt;
+
+&lt;p&gt;じゃあこれをどうするかというと、以下の2通りの方法を行う。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;アプリ側で監視する&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;外部キー制約&lt;/code&gt;を使う&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;普通は1を使うんだけど、1にも以下の問題点がある。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;スクリプトを全ての参照に対して行う必要がある&lt;/li&gt;
+&lt;li&gt;チェックを毎日、何回も実行しなければならない&lt;/li&gt;
+&lt;li&gt;参照が壊れていた場合でも修正できるかはわからない&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;この位の小さいテーブルだったらスクリプトでもいいけど、親、子、孫&amp;hellip;と何個も組み合わさっているとチェックできるかは怪しい。&lt;/p&gt;
+
+&lt;p&gt;そこで2の手法、&lt;code&gt;外部キー制約&lt;/code&gt;を使う。&lt;/p&gt;
+
+&lt;p&gt;ちなみに、これはオライリーの&lt;code&gt;SQLアンチパターン&lt;/code&gt;に&lt;code&gt;外部キー嫌い&lt;/code&gt;って項目で書いてある。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.amazon.co.jp/gp/product/4873115892/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;camp=247&amp;creative=1211&amp;creativeASIN=4873115892&amp;linkCode=as2&amp;tag=pyar6329-22&#34;&gt;&lt;img width=&#34;50%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/sql_anch.jpg&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;この本、結構面白くてSQLでダメなことが一通り書いてある。
+DB設計時にこれどうすればいいんだろうってのが結構解決する。俺でも分かったから、初心者でもわかりやすいと思う。
+特にパスの&lt;code&gt;閉包テーブル&lt;/code&gt;とポリモーフィックの&lt;code&gt;単一テーブル継承(Single Table Inheritance、通称STI)&lt;/code&gt;にはお世話になりました。&lt;/p&gt;
+
+&lt;h2 id=&#34;外部キー制約の種類&#34;&gt;外部キー制約の種類&lt;/h2&gt;
+
+&lt;p&gt;外部キー制約は更新時(&lt;code&gt;UPDATE ON&lt;/code&gt;)と削除時(&lt;code&gt;DELETE ON&lt;/code&gt;)にそれぞれ設定できる。&lt;/p&gt;
+
+&lt;p&gt;外部キー制約は主に4種類。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;NO ACTION&lt;/li&gt;
+&lt;li&gt;RESTRICT&lt;/li&gt;
+&lt;li&gt;CASCADE&lt;/li&gt;
+&lt;li&gt;SET NULL&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;SET DEFAULTとかもあるけど、今回は割愛。&lt;code&gt;NO ACTION&lt;/code&gt;と&lt;code&gt;RESTRICT&lt;/code&gt;は同じ。&lt;/p&gt;
+
+&lt;h3 id=&#34;restrict-no-action&#34;&gt;RESTRICT (NO ACTION)&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/restrict.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;子が外部キーを持っていた場合、その親の操作をさせなくする。&lt;/p&gt;
+
+&lt;h3 id=&#34;cascade&#34;&gt;CASCADE&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/cascade.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;子が外部キーを持っていた場合、その親が更新や削除したら、子もそれに追従する。&lt;/p&gt;
+
+&lt;h3 id=&#34;set-null&#34;&gt;SET NULL&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/null.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;子が外部キーを持っていた場合、その親が更新や削除したら、子にnullを代入する。&lt;/p&gt;
+
+&lt;h3 id=&#34;railsではどうなの&#34;&gt;Railsではどうなの？&lt;/h3&gt;
+
+&lt;p&gt;RailsはActiveRecord経由で操作、つまりmodelに書く。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class User &amp;lt; ActiveRecord::Base
+  has_one :animes, :class_name =&amp;gt; &#39;Anime&#39;, :dependent =&amp;gt; :destroyend
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;基本的には、&lt;code&gt;:dependent =&amp;gt; 制約名&lt;/code&gt;を追加するだけでいい。&lt;/p&gt;
+
+&lt;p&gt;でもこれは&lt;strong&gt;ActiveRecord経由で操作するものだけにしか効果が無い&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;つまり&lt;code&gt;user1.destroy&lt;/code&gt;とかでは効いても&lt;code&gt;user1.delete&lt;/code&gt;では効かない。&lt;/p&gt;
+
+&lt;p&gt;RailsはDB自体には制約ができない。なのでそれに対応するgem(&lt;code&gt;foreigner&lt;/code&gt;)を入れる必要がある。&lt;/p&gt;
+
+&lt;h2 id=&#34;gemの導入&#34;&gt;Gemの導入&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;Gemfile&lt;/code&gt;に&lt;code&gt;foreigner&lt;/code&gt;を追加。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;gem &#39;foreigner&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;実際に例で作成してみる&#34;&gt;実際に例で作成してみる&lt;/h2&gt;
+
+&lt;p&gt;今回は次のようなテーブルの場合を考える。&lt;/p&gt;
+
+&lt;div&gt;&lt;img width=&#34;80%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/foreigner-pc.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;usersテーブルにユーザー名、filesテーブルにファイル名。この2つが親。&lt;/p&gt;
+
+&lt;p&gt;playsテーブルが、どのユーザーが何のファイルを再生したかをカウントする、というもの。これが子。&lt;/p&gt;
+
+&lt;p&gt;playのロー(行データ)はusersテーブルとfilesテーブルに依存している。&lt;/p&gt;
+
+&lt;p&gt;親のロー(行データ)が更新したら子も更新し、削除されたら子も削除する。&lt;/p&gt;
+
+&lt;p&gt;モデルの作成は以下のコマンド。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model user name:string
+$ rails g model file name:string
+$ rails g play count:integer file:references user:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;注意点は、&lt;strong&gt;一度テーブルを作成してから&lt;/strong&gt;でないと反映できない。なので別にmigrationファイルを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g migration AddForeignKeyToPlays
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;AddForeignKeyToPlays&lt;/code&gt;の部分は、&lt;code&gt;AddForeignKeyToテーブル名複数形&lt;/code&gt;になる。&lt;/p&gt;
+
+&lt;p&gt;実際に作成されたmigrationファイルに外部キー制約を記入していく。書き方は3通り。&lt;/p&gt;
+
+&lt;h3 id=&#34;1-繰り返しを使う&#34;&gt;1. 繰り返しを使う&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class AddForeignKeyToPlays &amp;lt; ActiveRecord::Migration
+  def change
+    change_table :plays do |t|
+      t.foreign_key :users, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;
+      t.foreign_key :files, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;1.の場合、
+&lt;code&gt;t.foreign_key :users, options:&lt;/code&gt;とあるが、&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;t.foreign_key :親のテーブル名複数形, options: &#39;付与するSQL制約&#39;&lt;/code&gt;のように書く。&lt;/p&gt;
+
+&lt;h3 id=&#34;2-メソッドを使う&#34;&gt;2. メソッドを使う&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class AddForeignKeyToPlays &amp;lt; ActiveRecord::Migration
+  def change
+    add_foreign_key(:plays, :users, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;)
+    add_foreign_key(:plays, :files, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;)
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;2.の場合、
+&lt;code&gt;add_foreign_key(:plays, :users, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;)&lt;/code&gt;とあるが、&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;add_foreign_key(:子のテーブル名複数形, :親のテーブル名複数形, options: &#39;付与するSQL制約&#39;)&lt;/code&gt;のように書く。&lt;/p&gt;
+
+&lt;h3 id=&#34;3-メソッド-括弧なし-を使う&#34;&gt;3. メソッド(括弧なし)を使う&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class AddForeignKeyToPlays &amp;lt; ActiveRecord::Migration
+  def change
+    add_foreign_key :plays, :users, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;
+    add_foreign_key :plays, :files, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;3.の場合は2の括弧を外しただけ。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;付与するSQL制約&lt;/code&gt;は、SQLによって効果が違う。
+postgresqlの場合だと、以下の表通り。&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;更新時(ON UPDATE)の効果&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;削除時(ON DELETE)の効果&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;NO ACTION&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;規定値。親が更新できない。&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;規定値。親が削除できない。&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;RESTRICT&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;NO ACTIONと同じだが、制約の検査を遅らせられない&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;NO ACTIONと同じだが、制約の検査を遅らせられない&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;CASCADE&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;親に合わせて子も更新&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;親に合わせて子も削除&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;SET NULL&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;null値を代入&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;null値を代入&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;SET DEFAULT&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;自分で決めた規定値にする&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;自分で決めた規定値にする&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;なので&lt;code&gt;ON UPDATE CASCADE ON DELETE CASCADE&lt;/code&gt;だと、更新時も終了時も親に合わせて更新、削除になる。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsで多対多のテーブルを実装する</title>
+      <link>https://b.pyar.bz/20141016/many-to-many-table</link>
+      <pubDate>Thu, 16 Oct 2014 22:59:33 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141016/many-to-many-table</guid>
+      <description>
+
+&lt;p&gt;railsでmodelを作成するとき、多対多の実装方法が分かりづらかったのでまとめてみた。
+railsでの多対多の書き方はいろいろあるらしい。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;#1&#34;&gt;中間テーブルを作成し、&lt;code&gt;has_many :through&lt;/code&gt;を使う&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#2&#34;&gt;&lt;code&gt;has_and_belongs_to_many&lt;/code&gt;を使う&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#3&#34;&gt;&lt;code&gt;create_join_table&lt;/code&gt;を使う&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;1 → 3の順に情報が多い気がする。手軽さ的には 3 → 1の順かな。&lt;/p&gt;
+
+&lt;p&gt;個人的には1がおすすめ。理由としては、&lt;strong&gt;中間テーブル名を用いてDBにアクセス出来る&lt;/strong&gt;ことと、&lt;strong&gt;中間テーブルに属性を後で付加できる&lt;/strong&gt;から。&lt;/p&gt;
+
+&lt;p&gt;例として&lt;strong&gt;画像にtagデータを持たせる&lt;/strong&gt;テーブルを考える。&lt;/p&gt;
+
+&lt;p&gt;Toxi法で多対多のテーブルを作成する。&lt;a href=&#34;http://b.pyar.bz/blog/2014/10/15/model/&#34;&gt;railsの規約&lt;/a&gt;に沿ってDB設計をした。ER図は以下の通り。&lt;/p&gt;
+
+&lt;h3 id=&#34;1の場合&#34;&gt;1の場合&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/model/many_many.png&#34;&gt;&lt;/div&gt;
+
+&lt;h3 id=&#34;2-3の場合&#34;&gt;2, 3の場合&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;80%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/model/many_many_no_.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code&gt;images&lt;/code&gt;テーブルには&lt;code&gt;name&lt;/code&gt;と&lt;code&gt;URL&lt;/code&gt;の情報を保存し、&lt;code&gt;tags&lt;/code&gt;テーブルには&lt;code&gt;name&lt;/code&gt;の情報を保存させる。&lt;code&gt;tag_id&lt;/code&gt;と&lt;code&gt;image_id&lt;/code&gt;は外部キー。&lt;/p&gt;
+
+&lt;p&gt;違いは中間テーブルの有無だけで、やってることは同じ。実際にはrailsが中間テーブルを自動生成してくれるので、2,3も1のようなテーブルになる。&lt;/p&gt;
+
+&lt;p&gt;ではER図を元にrailsで実装してみる。&lt;/p&gt;
+
+&lt;h2&gt;&lt;a name=&#34;1&#34; class=&#34;content-link&#34;&gt;1. 中間テーブルを作成し、&lt;code&gt;has_many :through&lt;/code&gt;を使った場合&lt;/a&gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;rails g model&lt;/code&gt;コマンドを用いて、テーブルを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model image name:string url:string
+$ rails g model tag name:string
+$ rails g model image_tag image:references tag:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;テーブル名が単数形であることに注意。railsではActive Record経由で自動的に複数形にしてくれる。&lt;/p&gt;
+
+&lt;p&gt;中間テーブルと関連付けさせる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Image &amp;lt; ActiveRecord::Base
+  has_many :image_tags
+  has_many :tags, :through =&amp;gt; :image_tags
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class Tag &amp;lt; ActiveRecord::Base
+  has_many :image_tags
+  has_many :images, :through =&amp;gt; :image_tags
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class ImageTag &amp;lt; ActiveRecord::Base
+  belongs_to :image
+  belongs_to :tag
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみにmigrateファイルは以下のようになっている。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImages &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images do |t|
+      t.string :name
+      t.string :url
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :tags do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImageTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :image_tags do |t|
+      t.references :image, index: true, null: false
+      t.references :tag, index: true, null: false
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;外部キーに&lt;code&gt;not null&lt;/code&gt;制約を付加している。&lt;/p&gt;
+
+&lt;p&gt;最後にマイグレートする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2&gt;&lt;a name=&#34;2&#34; class=&#34;content-link&#34;&gt;2. &lt;code&gt;has_and_belongs_to_many&lt;/code&gt;を使った場合&lt;/a&gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;rails g model&lt;/code&gt;コマンドを用いて、テーブルを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model image name:string url:string
+$ rails g model tag name:string
+$ rails g migration create_images_tags image:references tag:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;中間テーブルは作らない。migrationファイルで関連付けさせる。&lt;/p&gt;
+
+&lt;p&gt;テーブルを関連付けさせる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Image &amp;lt; ActiveRecord::Base
+  has_and_belongs_to_many :tags
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class Tag &amp;lt; ActiveRecord::Base
+  has_and_belongs_to_many :images
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;migrationファイルを編集する&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;元のファイル&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImagesTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images_tags do |t|
+      t.references :image, index: true
+      t.references :tag, index: true
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;これを&lt;code&gt;has_and_belongs_to_many&lt;/code&gt;の規約で編集する&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;h4 id=&#34;has-and-belongs-to-many-アソシエーションの規約&#34;&gt;has_and_belongs_to_many アソシエーションの規約&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;中間テーブルを作成しなければならない。&lt;/li&gt;
+&lt;li&gt;中間テーブルのテーブル名は参照先のテーブル名を辞書順に「_」で連結しなければならない。(※)&lt;/li&gt;
+&lt;li&gt;中間テーブルの主キー列を無効化しなくてはならない。&lt;/li&gt;
+&lt;li&gt;中間テーブルの外部キー列は「参照先のモデル名_id」の形式にしなければならない。&lt;/li&gt;
+&lt;li&gt;中間テーブルのタイムスタンプ列を削除しなくてはならない。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;code&gt;変更後&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImagesTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images_tags, id: false do |t|
+      t.references :image, index: true, null: false
+      t.references :tag, index: true, null: false
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;外部キーに&lt;code&gt;not null&lt;/code&gt;制約を付加している。&lt;/p&gt;
+
+&lt;p&gt;変更前に&lt;code&gt;id: false&lt;/code&gt;を追加しただけ。外部キー名を明記しないのは、自動生成してくれるため。&lt;/p&gt;
+
+&lt;p&gt;ちなみに他のmigrateファイルは以下のようになっている。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImages &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images do |t|
+      t.string :name
+      t.string :url
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :tags do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最後にマイグレートする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2&gt;&lt;a name=&#34;3&#34; class=&#34;content-link&#34;&gt;3. &lt;code&gt;create_join_table&lt;/code&gt;を使った場合&lt;/a&gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;rails g model&lt;/code&gt;コマンドを用いて、テーブルを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model image name:string url:string
+$ rails g model tag name:string
+$ rails g migration create_join_table_images_tags image tag
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;中間テーブルは作らない。migrationファイルで関連付けさせる。&lt;/p&gt;
+
+&lt;p&gt;テーブルを関連付けさせる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Image &amp;lt; ActiveRecord::Base
+  has_and_belongs_to_many :tags
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class Tag &amp;lt; ActiveRecord::Base
+  has_and_belongs_to_many :images
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;migrationファイルを編集する&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;元のファイル&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateJoinTableImagesTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_join_table :images, :tags do |t|
+      # t.index [:image_id, :tag_id]
+      # t.index [:tag_id, :image_id]
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;コメントアウトを外す。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;変更後&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateJoinTableImagesTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_join_table :images, :tags do |t|
+      t.index [:image_id, :tag_id]
+      t.index [:tag_id, :image_id]
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみに他のmigrateファイルは以下のようになっている。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImages &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images do |t|
+      t.string :name
+      t.string :url
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :tags do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最後にマイグレートする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsのmodelについて調べてみた</title>
+      <link>https://b.pyar.bz/20141016/model</link>
+      <pubDate>Thu, 16 Oct 2014 00:33:20 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141016/model</guid>
+      <description>
+
+&lt;p&gt;railsでmodelを操作するときは、以下のコマンドを使う。&lt;/p&gt;
+
+&lt;h4 id=&#34;作成&#34;&gt;作成&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model テーブル名 カラム名:型 カラム名:型 ・・・
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;削除&#34;&gt;削除&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails d model テーブル名 カラム名:型 カラム名:型 ・・・
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;作成はg、削除はd。&lt;/p&gt;
+
+&lt;p&gt;また、外部キーを追加する場合にはこうする。&lt;/p&gt;
+
+&lt;h4 id=&#34;作成-外部キー有&#34;&gt;作成(外部キー有)&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model テーブル名 カラム名:型 カラム名:型 外部キーのテーブル名:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;削除-外部キー有&#34;&gt;削除(外部キー有)&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails d model テーブル名 カラム名:型 カラム名:型 外部キーのテーブル名:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;既存のテーブルに外部キーを追加する場合は、上記のコマンドでは追加できない。その場合はmigrationを用いる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g migration テーブル名 外部キーのテーブル名:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみに、railsには以下の規約がある。なので上記のテーブル名は&lt;strong&gt;小文字&lt;/strong&gt;かつ&lt;strong&gt;単数形&lt;/strong&gt;である必要がある。&lt;/p&gt;
+
+&lt;h4 id=&#34;テーブル名とクラス名&#34;&gt;テーブル名とクラス名&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;テーブル名は複数形&lt;/li&gt;
+&lt;li&gt;単語の区切りはアンダーバー(_)&lt;/li&gt;
+&lt;li&gt;対応するクラス名は単語の先頭を大文字にして _ を取り除いたもの&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;キーのカラム名&#34;&gt;キーのカラム名&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;主キーのカラム名は「id」&lt;/li&gt;
+&lt;li&gt;外部キーのカラム名は「テーブル名の単数_id」&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;日付関連のカラム名&#34;&gt;日付関連のカラム名&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;DATE型のカラムには名前を 「受動態_on」&lt;/li&gt;
+&lt;li&gt;TIMESTAMP型のカラムには名前を「受動態_at」&lt;/li&gt;
+&lt;li&gt;更新日時、作成日時は「updated_at」、「created_at」&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;結合テーブル&#34;&gt;結合テーブル&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;関連させたいテーブル名をくっつけた名前にする&lt;/li&gt;
+&lt;li&gt;カラム「id」を作らずに、関連させる2つのキーのセットを主キーにする&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;参考: &lt;a href=&#34;http://railsdoc.com/rails_base&#34;&gt;Railsドキュメント&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;型一覧&#34;&gt;型一覧&lt;/h3&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;rails g model&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;sqlite&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;mysql&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;postgresql&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;ruby&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:binary&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;bolb&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;bolb&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;bytea&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;String&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:boolean&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;boolean&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;tinyint(1)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;boolean&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;TrueClass/FalseClass&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:date&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;date&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;date&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;date&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Date&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:datetime&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;timestamp&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Time&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:decimal&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;decimal&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;decimal&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;decimal&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;BigDecimal&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:float&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;float&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;float&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;float&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Float&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:integer&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;integer&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;int(11)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;integer&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Fixnum&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:string&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;varchar(255)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;varchar(255)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;character varying(256)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;String&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:text&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;test&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;text&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;text&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;String&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:time&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;time&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;time&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Time&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:timestamp&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;timestamp&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Time&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;ちなみに主キーは自動的に作成されるので、&lt;code&gt;rails g id:primary_key&lt;/code&gt;とかで作る必要はない。&lt;/p&gt;
+
+&lt;p&gt;あとは以下のコマンドで反映させればOK&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;DBを反映前の状態に戻したい場合は以下のコマンドを使う。&lt;/p&gt;
+
+&lt;h4 id=&#34;dbを1つ前に戻す&#34;&gt;DBを1つ前に戻す&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:rollback
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;dbを最初に戻す&#34;&gt;DBを最初に戻す&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate VERSION=0
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsでよく出てくる、似たようなものを調べてみた。</title>
+      <link>https://b.pyar.bz/20141016/same-rails</link>
+      <pubDate>Thu, 16 Oct 2014 00:08:13 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141016/same-rails</guid>
+      <description>
+
+&lt;p&gt;railsで調べていると、よく似たものが出てくる。わかりづらいのでメモ。&lt;/p&gt;
+
+&lt;h3 id=&#34;html&#34;&gt;HTML&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;erb
+
+&lt;ul&gt;
+&lt;li&gt;デフォルトのやつ。&lt;/li&gt;
+&lt;li&gt;基本はhtmlそのもの。&lt;/li&gt;
+&lt;li&gt;ruby埋め込みは&lt;code&gt;&amp;lt;%= %&amp;gt;&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;haml(yaml)
+
+&lt;ul&gt;
+&lt;li&gt;ちょっとふるいやつ。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;&amp;lt;&amp;gt;&lt;/code&gt;の代わりに&lt;code&gt;%&lt;/code&gt;を用いる&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;slim
+
+&lt;ul&gt;
+&lt;li&gt;新しいやつ。&lt;/li&gt;
+&lt;li&gt;cssやjqueryと記法が似ている。&lt;/li&gt;
+&lt;li&gt;classは&lt;code&gt;.&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;idは&lt;code&gt;#&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;ruby埋め込みは&lt;code&gt;=&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;gem &#39;slim-rails&#39;&lt;/code&gt;でインストール&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;javascript&#34;&gt;javascript&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;coffee scrpit&lt;/li&gt;
+&lt;li&gt;type script&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;css&#34;&gt;CSS&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;scss
+
+&lt;ul&gt;
+&lt;li&gt;コンパイラはruby。デフォルト。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;sass
+
+&lt;ul&gt;
+&lt;li&gt;デフォルトで使えるが、拡張子を&lt;code&gt;.sass&lt;/code&gt;変更する。&lt;/li&gt;
+&lt;li&gt;scssから&lt;code&gt;{}&lt;/code&gt;が取れた感じ。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;less
+
+&lt;ul&gt;
+&lt;li&gt;コンパイラはjavascript。&lt;/li&gt;
+&lt;li&gt;gemに&lt;code&gt;rubyracer&lt;/code&gt;が必要&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;gem&#34;&gt;gem&lt;/h3&gt;
+
+&lt;h4 id=&#34;処理の高速化&#34;&gt;処理の高速化&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/rails/spring&#34;&gt;spring&lt;/a&gt; rails4のデフォ。最近はこれ。
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/jonleighton/spring-commands-rspec&#34;&gt;spring-commands-rspec&lt;/a&gt; springにrspecを対応させる。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;zeus 古いやつ&lt;/li&gt;
+&lt;li&gt;spork 古いやつ&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;変更の監視&#34;&gt;変更の監視&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/guard/guard&#34;&gt;guard&lt;/a&gt; 画面をリロードさせたりrspecを走らせたり
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/guard/guard-livereload&#34;&gt;guard-livereload&lt;/a&gt; ブラウザをリロード&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/guard/guard-rspec&#34;&gt;guard-rspec&lt;/a&gt; テストを自動で走らせる&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/mknapik/guard-spring&#34;&gt;guard-spring&lt;/a&gt; springを呼び出す&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;デバッグ&#34;&gt;デバッグ&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/rweng/pry-rails&#34;&gt;pry-rails&lt;/a&gt; irbの強化版ipythonみたいなもん。rails consoleでも動作する。
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/deivid-rodriguez/pry-byebug&#34;&gt;pry-byebug&lt;/a&gt; pry中にデバッグできる。ブレイクポイントを設置したり。ruby2ではこっち&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/nixme/pry-debugger&#34;&gt;pry-debugger&lt;/a&gt; pry中にデバッグできる。ブレイクポイントを設置したり。ruby2では動作しない&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;tdd&#34;&gt;TDD&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/rspec/rspec-rails&#34;&gt;rspec-rails&lt;/a&gt; 言わずもがなrspec本体&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/thoughtbot/factory_girl_rails&#34;&gt;factory_girl_rails&lt;/a&gt; テストDBにデータを用意できる。主にmodel側のテスト。&lt;/li&gt;
+&lt;li&gt;fixture →factory_girlと同じ。factory_girlのほうが上&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/jnicklas/capybara&#34;&gt;capybara&lt;/a&gt; 操作やフォーム入力などをエミュレートしてくれる。主にview側のテスト。APIには向かない。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;binstub&#34;&gt;binstub&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;railsアプリ/binに実行ファイルを置いてくれる。&lt;code&gt;bundle install --binstubs path&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>vagrantでよく使うコマンド</title>
+      <link>https://b.pyar.bz/20141016/vagrant-command</link>
+      <pubDate>Thu, 16 Oct 2014 00:00:28 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141016/vagrant-command</guid>
+      <description>
+
+&lt;p&gt;vagrantでよく使うコマンドをまとめてみた。&lt;/p&gt;
+
+&lt;h3 id=&#34;仮想pcを起動&#34;&gt;仮想PCを起動&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;$ vagrant up
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;仮想pcにログイン&#34;&gt;仮想PCにログイン&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;$ vagrant ssh
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;仮想pcをシャットダウン&#34;&gt;仮想PCをシャットダウン&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;$ vagrant halt
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;仮想pcを壊して作りなおす&#34;&gt;仮想PCを壊して作りなおす&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;$ vagrant destroy
+$ vagrant up
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsのよく使うコマンドをまとめてみた</title>
+      <link>https://b.pyar.bz/20141015/rails-command</link>
+      <pubDate>Wed, 15 Oct 2014 23:47:39 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141015/rails-command</guid>
+      <description>
+
+&lt;p&gt;Scaffoldは使わない気がする。大体使うのcontrollerとmodelだなぁ。&lt;/p&gt;
+
+&lt;h3 id=&#34;controller&#34;&gt;Controller&lt;/h3&gt;
+
+&lt;p&gt;作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g controller コントローラ名 メソッド名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;削除&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails d controller コントローラ名 メソッド名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;model&#34;&gt;Model&lt;/h3&gt;
+
+&lt;p&gt;作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g model モデル名 カラム名1:型 カラム名2:型 ・・・・
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;削除&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails d model モデル名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;migration&#34;&gt;Migration&lt;/h3&gt;
+
+&lt;p&gt;DBの適用&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;DBを1つ前に戻す&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rake db:rollback
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;DBを最初に戻す&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rake db:migrate VERSION=0
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;test-rspec時&#34;&gt;Test(rspec時)&lt;/h3&gt;
+
+&lt;p&gt;modelテスト作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g rspec:model テスト名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;controllerテスト作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g rspec:controller テスト名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;viewテスト作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g rspec:view テスト名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;コマンド一覧&#34;&gt;コマンド一覧&lt;/h2&gt;
+
+&lt;p&gt;参考: &lt;a href=&#34;http://d.hatena.ne.jp/maeharin/20130212/rails_generate&#34;&gt;maeharinの日記&lt;/a&gt;&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;center&#34;&gt;コマンド名&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;コントローラ&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;ビュー&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;モデル&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;マイグレーション&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;アセット&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;ルート&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;テスト&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;ヘルパー&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;scaffold&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;scaffold_controller&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;controller&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;model&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;migration&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>NewRelicでHerokuアプリをスリープさせなくする</title>
+      <link>https://b.pyar.bz/20141015/newrelic-config</link>
+      <pubDate>Wed, 15 Oct 2014 23:31:02 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141015/newrelic-config</guid>
+      <description>&lt;p&gt;ライセンスキーを取得しておく&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://rpm.newrelic.com/applications/setup&#34;&gt;https://rpm.newrelic.com/applications/setup&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;環境変数を読み込むよう変更する&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ heroku addons:add newrelic:stark
+$ heroku config:set NEW_RELIC_APP_NAME=heroku上でのアプリ名
+$ heroku config:set NEW_RELIC_LICENSE_KEY=NewRelicのライセンスキー
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;/config/newrelic.yml&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;common: &amp;amp;default_settings
+  license_key: &amp;lt;%= ENV[&amp;quot;NEW_RELIC_LICENSE_KEY&amp;quot;] %&amp;gt;
+  app_name: &amp;lt;%= ENV[&amp;quot;NEW_RELIC_APP_NAME&amp;quot;] %&amp;gt;
+development:
+  &amp;lt;&amp;lt;: *default_settings
+  monitor_mode: true
+  app_name: &amp;lt;%= ENV[&amp;quot;NEW_RELIC_APP_NAME&amp;quot;] %&amp;gt; (Development)
+staging:
+  &amp;lt;&amp;lt;: *default_settings
+  monitor_mode: true
+  app_name: &amp;lt;%= ENV[&amp;quot;NEW_RELIC_APP_NAME&amp;quot;] %&amp;gt; (Staging)
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;URLにアクセスして、Pingを飛ばすようにする&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;newRelicのURL/アプリ名/ping_targets&lt;/code&gt;にアクセス&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;URL to monitor&lt;/code&gt;にherokuの起動URLを入力&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

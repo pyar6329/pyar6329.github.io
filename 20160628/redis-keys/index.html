@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="@pyar6329">
+<meta name="description" content="tech blog">
+<meta name="generator" content="Hugo 0.19" />
+<title>redisのkeyについて調べてみた</title>
+<link rel="shortcut icon" href="https://b.pyar.bz/images/favicon.ico">
+<link rel="stylesheet" href="https://b.pyar.bz/css/style.css">
+<link rel="stylesheet" href="https://b.pyar.bz/css/highlight.css">
+
+<link rel="stylesheet" href="https://b.pyar.bz/css/layout.css">
+
+
+
+<link rel="stylesheet" href="https://b.pyar.bz/css/monosocialiconsfont.css">
+
+
+
+<link href="https://b.pyar.bz/index.xml" rel="alternate" type="application/rss+xml" title="pyar.bz" />
+
+
+<meta property="og:title" content="redisのkeyについて調べてみた" />
+<meta property="og:description" content=" 特徴  バイナリセーフ 文字列からjpegファイルまでキーとして扱える 空文字もOK 短いほうがメモリ効率がいい。 キーの最大長は512MB ある要素を追加するとき、対象のキーが存在しない場合は、要素の追加前に データタイプの空集合(型が決まっていないもの) が作成される データタイプの空集合(型が決まっていないもの) から全ての要素が削除されたとき、キーは自動的に削除される 空のキーに対してread-onlyのコマンドや削除するコマンドを実行すると、空集合に対しての結果が返ってくる すでにキーが存在する場合、別のデータタイプ(型)のコマンドは実行エラーになる  注意点  長すぎるキーはだめ。メモリ効率が悪く、データから検索時にキーの比較に処理が重くなる キーをhash化すると(e.g. sha1)、メモリ使用効率とネットワーク帯域が良くなる 短すぎるキーはだめ(e.g. user:10:following を u:10:f などにする)。可読性が悪く、メモリ効率では誤差。 スキーマにこだわるべき。object-type:id みたいな形が有効。  e.g.  user:1000 comment:1234:reply.to comment:1000:reply-to    コマンド 型を取得 返り値は string 、list、set、zset、hash、none など
+&gt; type &quot;キー&quot;  削除 削除されると 1、 削除されない、もしくはキーが存在しない場合は 0を返す
+&gt; del &quot;キー&quot;  存在判定 DBに存在すれば 1、存在しない場合 0 を返す
+&gt; exists &quot;キー&quot;  " />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://b.pyar.bz/20160628/redis-keys" />
+
+
+
+<meta property="article:published_time" content="2016-06-28T00:03:53-09:00"/>
+<meta property="article:modified_time" content="2016-06-28T00:03:53-09:00"/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="redisのkeyについて調べてみた">
+<meta itemprop="description" content=" 特徴  バイナリセーフ 文字列からjpegファイルまでキーとして扱える 空文字もOK 短いほうがメモリ効率がいい。 キーの最大長は512MB ある要素を追加するとき、対象のキーが存在しない場合は、要素の追加前に データタイプの空集合(型が決まっていないもの) が作成される データタイプの空集合(型が決まっていないもの) から全ての要素が削除されたとき、キーは自動的に削除される 空のキーに対してread-onlyのコマンドや削除するコマンドを実行すると、空集合に対しての結果が返ってくる すでにキーが存在する場合、別のデータタイプ(型)のコマンドは実行エラーになる  注意点  長すぎるキーはだめ。メモリ効率が悪く、データから検索時にキーの比較に処理が重くなる キーをhash化すると(e.g. sha1)、メモリ使用効率とネットワーク帯域が良くなる 短すぎるキーはだめ(e.g. user:10:following を u:10:f などにする)。可読性が悪く、メモリ効率では誤差。 スキーマにこだわるべき。object-type:id みたいな形が有効。  e.g.  user:1000 comment:1234:reply.to comment:1000:reply-to    コマンド 型を取得 返り値は string 、list、set、zset、hash、none など
+&gt; type &quot;キー&quot;  削除 削除されると 1、 削除されない、もしくはキーが存在しない場合は 0を返す
+&gt; del &quot;キー&quot;  存在判定 DBに存在すれば 1、存在しない場合 0 を返す
+&gt; exists &quot;キー&quot;  ">
+
+
+<meta itemprop="dateModified" content="2016-06-28T00:03:53-09:00" />
+<meta itemprop="wordCount" content="53">
+
+
+
+<meta itemprop="keywords" content="programming,ネットワーク,プログラミング,環境構築,開発手法,api,basic,binstubs,capybara,coffee,command,config,controller,datetime,db,erb,er図,factory_girl,foreigner,gem,get,git,github,github-flow,guard,haml,has_one,heroku,intellij,ip,ipoe,ipv4,ipv6,isp,java,java8,jbuilder,json,jst,kvs,less,mac,match,migrate,model,network,newrelic,nosql,oreilly,parse,ping,postgres,postgresql,production,pry,public,rails,rails4,rake,redis,routing,rspec,ruby,sass,scaffold,scss,slim,speedtest,spring,table,test,timestamp,timezone,travis,type,uri,url,utc,vagrant,vne,yaml,オライリー,グローバル参照,コマンド,スリープ,チーム,テーブル,デプロイ,パース,メモ,ルーティング,図解,外部キー,外部キー制約,外部キー嫌い,多対多,時間,環境変数," />
+
+
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="redisのkeyについて調べてみた"/>
+<meta name="twitter:title" content="redisのkeyについて調べてみた"/>
+<meta name="twitter:description" content=" 特徴  バイナリセーフ 文字列からjpegファイルまでキーとして扱える 空文字もOK 短いほうがメモリ効率がいい。 キーの最大長は512MB ある要素を追加するとき、対象のキーが存在しない場合は、要素の追加前に データタイプの空集合(型が決まっていないもの) が作成される データタイプの空集合(型が決まっていないもの) から全ての要素が削除されたとき、キーは自動的に削除される 空のキーに対してread-onlyのコマンドや削除するコマンドを実行すると、空集合に対しての結果が返ってくる すでにキーが存在する場合、別のデータタイプ(型)のコマンドは実行エラーになる  注意点  長すぎるキーはだめ。メモリ効率が悪く、データから検索時にキーの比較に処理が重くなる キーをhash化すると(e.g. sha1)、メモリ使用効率とネットワーク帯域が良くなる 短すぎるキーはだめ(e.g. user:10:following を u:10:f などにする)。可読性が悪く、メモリ効率では誤差。 スキーマにこだわるべき。object-type:id みたいな形が有効。  e.g.  user:1000 comment:1234:reply.to comment:1000:reply-to    コマンド 型を取得 返り値は string 、list、set、zset、hash、none など
+&gt; type &quot;キー&quot;  削除 削除されると 1、 削除されない、もしくはキーが存在しない場合は 0を返す
+&gt; del &quot;キー&quot;  存在判定 DBに存在すれば 1、存在しない場合 0 を返す
+&gt; exists &quot;キー&quot;  "/>
+
+
+
+    </head>
+<body>
+    <nav class="main-nav">
+	
+		<a href='https://b.pyar.bz/'> <span class="arrow">←</span>Home</a>
+	
+
+	
+
+	
+		<a class="cta" href="https://b.pyar.bz/index.xml">Subscribe</a>
+	
+</nav>
+
+    <section id="wrapper">
+        
+        
+<article class="post">
+    <header>
+        <h1>redisのkeyについて調べてみた</h1>
+        <h2 class="headline">
+        June 28, 2016
+        <br>
+        
+        
+            
+                <a href="https://b.pyar.bz/tags/redis">redis</a>
+            
+                <a href="https://b.pyar.bz/tags/nosql">NoSQL</a>
+            
+                <a href="https://b.pyar.bz/tags/kvs">kvs</a>
+            
+        
+        
+        </h2>
+    </header>
+    <section id="post-body">
+        
+
+<h2 id="特徴">特徴</h2>
+
+<ul>
+<li>バイナリセーフ</li>
+<li>文字列からjpegファイルまでキーとして扱える</li>
+<li>空文字もOK</li>
+<li>短いほうがメモリ効率がいい。</li>
+<li>キーの最大長は512MB</li>
+<li>ある要素を追加するとき、対象のキーが存在しない場合は、要素の追加前に <code>データタイプの空集合(型が決まっていないもの)</code> が作成される</li>
+<li><code>データタイプの空集合(型が決まっていないもの)</code> から全ての要素が削除されたとき、キーは自動的に削除される</li>
+<li>空のキーに対してread-onlyのコマンドや削除するコマンドを実行すると、空集合に対しての結果が返ってくる</li>
+<li>すでにキーが存在する場合、別のデータタイプ(型)のコマンドは実行エラーになる</li>
+</ul>
+
+<h2 id="注意点">注意点</h2>
+
+<ul>
+<li>長すぎるキーはだめ。メモリ効率が悪く、データから検索時にキーの比較に処理が重くなる</li>
+<li>キーをhash化すると(e.g. sha1)、メモリ使用効率とネットワーク帯域が良くなる</li>
+<li>短すぎるキーはだめ(e.g. <code>user:10:following</code> を <code>u:10:f</code> などにする)。可読性が悪く、メモリ効率では誤差。</li>
+<li>スキーマにこだわるべき。<code>object-type:id</code> みたいな形が有効。
+
+<ul>
+<li>e.g.
+
+<ul>
+<li><code>user:1000</code></li>
+<li><code>comment:1234:reply.to</code></li>
+<li><code>comment:1000:reply-to</code></li>
+</ul></li>
+</ul></li>
+</ul>
+
+<h2 id="コマンド">コマンド</h2>
+
+<h3 id="型を取得">型を取得</h3>
+
+<p>返り値は <code>string</code> 、<code>list</code>、<code>set</code>、<code>zset</code>、<code>hash</code>、<code>none</code> など</p>
+
+<pre><code>&gt; type &quot;キー&quot;
+</code></pre>
+
+<h3 id="削除">削除</h3>
+
+<p>削除されると <code>1</code>、 削除されない、もしくはキーが存在しない場合は <code>0</code>を返す</p>
+
+<pre><code>&gt; del &quot;キー&quot;
+</code></pre>
+
+<h3 id="存在判定">存在判定</h3>
+
+<p>DBに存在すれば <code>1</code>、存在しない場合 <code>0</code> を返す</p>
+
+<pre><code>&gt; exists &quot;キー&quot;
+</code></pre>
+
+    </section>
+</article>
+
+<footer id="post-meta" class="clearfix">
+    
+    <img class="avatar" src="https://b.pyar.bz/images/avatar.png">
+    <div>
+        <span class="dark">@pyar6329</span>
+        <span>I&#39;m programmer.</span>
+    </div>
+    
+    <section id="sharing">
+        <a class="twitter" href="https://twitter.com/intent/tweet?text=https%3a%2f%2fb.pyar.bz%2f20160628%2fredis-keys - redis%e3%81%aekey%e3%81%ab%e3%81%a4%e3%81%84%e3%81%a6%e8%aa%bf%e3%81%b9%e3%81%a6%e3%81%bf%e3%81%9f "><span class="icon-twitter"> tweet</span></a>
+
+<a class="facebook" href="#" onclick="
+    window.open(
+      'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+      'facebook-share-dialog',
+      'width=626,height=436');
+    return false;"><span class="icon-facebook-rect"> Share</span>
+</a>
+
+    </section>
+</footer>
+
+
+
+<ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="https://b.pyar.bz/20170608/api-uri">APIのURIを短くする<aside class="dates">Jun 8 2017</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20170324/ipv6">あなたのお家の光回線速度を上げる方法<aside class="dates">Mar 24 2017</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141027/rails-timezone">RailsでのtimezoneをUTCにする<aside class="dates">Oct 27 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141023/has-one">has-oneが動作しなかったのでclass_nameを追加した<aside class="dates">Oct 23 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/mac-postgresql-installation">macでPostgreSQLをインストールする<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/migrate-command">migrateコマンドを省略する<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/rake-db-migrate">railsで動作モードを変更する<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/foreigner">railsに外部キー制約を追加してみた<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141016/many-to-many-table">railsで多対多のテーブルを実装する<aside class="dates">Oct 16 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141016/model">railsのmodelについて調べてみた<aside class="dates">Oct 16 2014</aside></a>
+        </li>
+    
+</ul>
+
+
+
+        <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://www.github.com/pyar6329">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+        © Copyright 2017 @pyar6329
+    
+    </p>
+</footer>
+
+    </section>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://b.pyar.bz/js/main.js"></script>
+<script src="https://b.pyar.bz/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47263119-3', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+</body>
+</html>

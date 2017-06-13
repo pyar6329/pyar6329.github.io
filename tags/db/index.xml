@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Db on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/db/index.xml</link>
+    <description>Recent content in Db on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/db/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>railsのmodelについて調べてみた</title>
+      <link>https://b.pyar.bz/20141016/model</link>
+      <pubDate>Thu, 16 Oct 2014 00:33:20 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141016/model</guid>
+      <description>
+
+&lt;p&gt;railsでmodelを操作するときは、以下のコマンドを使う。&lt;/p&gt;
+
+&lt;h4 id=&#34;作成&#34;&gt;作成&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model テーブル名 カラム名:型 カラム名:型 ・・・
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;削除&#34;&gt;削除&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails d model テーブル名 カラム名:型 カラム名:型 ・・・
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;作成はg、削除はd。&lt;/p&gt;
+
+&lt;p&gt;また、外部キーを追加する場合にはこうする。&lt;/p&gt;
+
+&lt;h4 id=&#34;作成-外部キー有&#34;&gt;作成(外部キー有)&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model テーブル名 カラム名:型 カラム名:型 外部キーのテーブル名:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;削除-外部キー有&#34;&gt;削除(外部キー有)&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails d model テーブル名 カラム名:型 カラム名:型 外部キーのテーブル名:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;既存のテーブルに外部キーを追加する場合は、上記のコマンドでは追加できない。その場合はmigrationを用いる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g migration テーブル名 外部キーのテーブル名:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみに、railsには以下の規約がある。なので上記のテーブル名は&lt;strong&gt;小文字&lt;/strong&gt;かつ&lt;strong&gt;単数形&lt;/strong&gt;である必要がある。&lt;/p&gt;
+
+&lt;h4 id=&#34;テーブル名とクラス名&#34;&gt;テーブル名とクラス名&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;テーブル名は複数形&lt;/li&gt;
+&lt;li&gt;単語の区切りはアンダーバー(_)&lt;/li&gt;
+&lt;li&gt;対応するクラス名は単語の先頭を大文字にして _ を取り除いたもの&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;キーのカラム名&#34;&gt;キーのカラム名&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;主キーのカラム名は「id」&lt;/li&gt;
+&lt;li&gt;外部キーのカラム名は「テーブル名の単数_id」&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;日付関連のカラム名&#34;&gt;日付関連のカラム名&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;DATE型のカラムには名前を 「受動態_on」&lt;/li&gt;
+&lt;li&gt;TIMESTAMP型のカラムには名前を「受動態_at」&lt;/li&gt;
+&lt;li&gt;更新日時、作成日時は「updated_at」、「created_at」&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;結合テーブル&#34;&gt;結合テーブル&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;関連させたいテーブル名をくっつけた名前にする&lt;/li&gt;
+&lt;li&gt;カラム「id」を作らずに、関連させる2つのキーのセットを主キーにする&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;参考: &lt;a href=&#34;http://railsdoc.com/rails_base&#34;&gt;Railsドキュメント&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;型一覧&#34;&gt;型一覧&lt;/h3&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;rails g model&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;sqlite&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;mysql&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;postgresql&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;ruby&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:binary&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;bolb&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;bolb&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;bytea&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;String&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:boolean&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;boolean&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;tinyint(1)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;boolean&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;TrueClass/FalseClass&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:date&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;date&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;date&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;date&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Date&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:datetime&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;timestamp&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Time&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:decimal&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;decimal&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;decimal&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;decimal&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;BigDecimal&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:float&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;float&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;float&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;float&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Float&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:integer&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;integer&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;int(11)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;integer&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Fixnum&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:string&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;varchar(255)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;varchar(255)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;character varying(256)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;String&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:text&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;test&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;text&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;text&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;String&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:time&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;time&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;time&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Time&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:timestamp&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;timestamp&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Time&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;ちなみに主キーは自動的に作成されるので、&lt;code&gt;rails g id:primary_key&lt;/code&gt;とかで作る必要はない。&lt;/p&gt;
+
+&lt;p&gt;あとは以下のコマンドで反映させればOK&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;DBを反映前の状態に戻したい場合は以下のコマンドを使う。&lt;/p&gt;
+
+&lt;h4 id=&#34;dbを1つ前に戻す&#34;&gt;DBを1つ前に戻す&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:rollback
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;dbを最初に戻す&#34;&gt;DBを最初に戻す&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate VERSION=0
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>herokuの環境変数を設定してrailsからDBにアクセスする</title>
+      <link>https://b.pyar.bz/20141015/heroku-config</link>
+      <pubDate>Wed, 15 Oct 2014 23:15:31 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141015/heroku-config</guid>
+      <description>&lt;p&gt;herokuのデプロイ時にDB関係でよくエラーになるのでメモ。&lt;/p&gt;
+
+&lt;p&gt;Heroku Toolbeltをインストールする&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://toolbelt.heroku.com/&#34;&gt;heroku Toolbelt&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;アプリケーションの作成をする&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://dashboard-next.heroku.com/new&#34;&gt;https://dashboard-next.heroku.com/new&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;view画面を作成しないとエラーが出るので、以下のコマンドでview画面を作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g controller Top index
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ルーティング先をTopControllerにする&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;config/routes.rb&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Rails.application.routes.draw do
+  # get &#39;top/index&#39;
+  root &#39;top#index&#39;
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;環境変数を読み込むよう変更する&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;/config/database.yml&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;production:
+  adapter: postgresql
+  encoding: utf8
+  port: 5432
+  host: &amp;lt;%= ENV[&#39;DB_HOST&#39;] %&amp;gt;
+  database: &amp;lt;%= ENV[&#39;DB_DATABASE&#39;] %&amp;gt;
+  pool: 5
+  username: &amp;lt;%= ENV[&#39;DB_USERNAME&#39;] %&amp;gt;
+  password: &amp;lt;%= ENV[&#39;DB_PASSWORD&#39;] %&amp;gt;
+  timeout: 5000
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;/config/secrets.yml&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;production:
+  secret_key_base: &amp;lt;%= ENV[&amp;quot;SECRET_KEY_BASE&amp;quot;] %&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;$ git remote add heroku git@heroku.com:アプリ名.git
+$ heroku login
+$ heroku config
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;以下のように出てくる。5432はport番号。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;postgres://ユーザー名:パスワード@ホスト名:5432/データベース名&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;以下のコマンドを入力して環境変数を設定&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ heroku config:set DB_HOST=ホスト名
+$ heroku config:set DB_DATABASE=データベース名
+$ heroku config:set DB_PASSWORD=パスワード
+$ heroku config:set DB_USERNAME=ユーザー名
+$ heroku config:set LANG=ja_JP.UTF-8
+$ heroku config:set TZ=Asia/Tokyo
+$ heroku config:set SECRET_KEY_BASE=secrets.ymlに書いてあった文字列
+$ heroku config:set RACK_ENV=production
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

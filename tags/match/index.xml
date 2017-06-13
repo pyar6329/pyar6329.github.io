@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Match on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/match/index.xml</link>
+    <description>Recent content in Match on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/match/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>railsのルーティングはmatchを使って書くべき</title>
+      <link>https://b.pyar.bz/20141015/routing</link>
+      <pubDate>Wed, 15 Oct 2014 23:04:14 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141015/routing</guid>
+      <description>&lt;p&gt;railsのrootingにおいて、getやpostで書き始めるのではなく、matchで書き始めるのが慣例らしい。&lt;/p&gt;
+
+&lt;p&gt;例として、以下のルーティングがあるとする。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;get &#39;help/&#39; =&amp;gt; &#39;testpage#help&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;これを次の様に書き直す、がおすすめしない。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;match &#39;/help&#39;, :to =&amp;gt; &#39;testpage#help&#39;, :via =&amp;gt; :get
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;実際には次のように書く。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;match &#39;/help&#39;, to: &#39;testpage#help&#39;, via: &#39;get&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ハッシュ&lt;code&gt;=&amp;gt;&lt;/code&gt;とシンボル&lt;code&gt;:&lt;/code&gt;だと後者が新しい。&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="@pyar6329">
+<meta name="description" content="tech blog">
+<meta name="generator" content="Hugo 0.19" />
+<title>railsで多対多のテーブルを実装する</title>
+<link rel="shortcut icon" href="https://b.pyar.bz/images/favicon.ico">
+<link rel="stylesheet" href="https://b.pyar.bz/css/style.css">
+<link rel="stylesheet" href="https://b.pyar.bz/css/highlight.css">
+
+<link rel="stylesheet" href="https://b.pyar.bz/css/layout.css">
+
+
+
+<link rel="stylesheet" href="https://b.pyar.bz/css/monosocialiconsfont.css">
+
+
+
+<link href="https://b.pyar.bz/index.xml" rel="alternate" type="application/rss+xml" title="pyar.bz" />
+
+
+<meta property="og:title" content="railsで多対多のテーブルを実装する" />
+<meta property="og:description" content="railsでmodelを作成するとき、多対多の実装方法が分かりづらかったのでまとめてみた。 railsでの多対多の書き方はいろいろあるらしい。
+ 中間テーブルを作成し、has_many :throughを使う has_and_belongs_to_manyを使う create_join_tableを使う  1 → 3の順に情報が多い気がする。手軽さ的には 3 → 1の順かな。
+個人的には1がおすすめ。理由としては、中間テーブル名を用いてDBにアクセス出来ることと、中間テーブルに属性を後で付加できるから。
+例として画像にtagデータを持たせるテーブルを考える。
+Toxi法で多対多のテーブルを作成する。railsの規約に沿ってDB設計をした。ER図は以下の通り。
+1の場合  2, 3の場合  imagesテーブルにはnameとURLの情報を保存し、tagsテーブルにはnameの情報を保存させる。tag_idとimage_idは外部キー。
+違いは中間テーブルの有無だけで、やってることは同じ。実際にはrailsが中間テーブルを自動生成してくれるので、2,3も1のようなテーブルになる。
+ではER図を元にrailsで実装してみる。
+1. 中間テーブルを作成し、has_many :throughを使った場合 rails g modelコマンドを用いて、テーブルを作成する。
+$ rails g model image name:string url:string $ rails g model tag name:string $ rails g model image_tag image:references tag:references  テーブル名が単数形であることに注意。railsではActive Record経由で自動的に複数形にしてくれる。
+中間テーブルと関連付けさせる。
+class Image &lt; ActiveRecord::Base has_many :image_tags has_many :tags, :through =&gt; :image_tags end  class Tag &lt; ActiveRecord::Base has_many :image_tags has_many :images, :through =&gt; :image_tags end  class ImageTag &lt; ActiveRecord::Base belongs_to :image belongs_to :tag end  ちなみにmigrateファイルは以下のようになっている。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://b.pyar.bz/20141016/many-to-many-table" />
+
+
+
+<meta property="article:published_time" content="2014-10-16T22:59:33-09:00"/>
+<meta property="article:modified_time" content="2014-10-16T22:59:33-09:00"/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="railsで多対多のテーブルを実装する">
+<meta itemprop="description" content="railsでmodelを作成するとき、多対多の実装方法が分かりづらかったのでまとめてみた。 railsでの多対多の書き方はいろいろあるらしい。
+ 中間テーブルを作成し、has_many :throughを使う has_and_belongs_to_manyを使う create_join_tableを使う  1 → 3の順に情報が多い気がする。手軽さ的には 3 → 1の順かな。
+個人的には1がおすすめ。理由としては、中間テーブル名を用いてDBにアクセス出来ることと、中間テーブルに属性を後で付加できるから。
+例として画像にtagデータを持たせるテーブルを考える。
+Toxi法で多対多のテーブルを作成する。railsの規約に沿ってDB設計をした。ER図は以下の通り。
+1の場合  2, 3の場合  imagesテーブルにはnameとURLの情報を保存し、tagsテーブルにはnameの情報を保存させる。tag_idとimage_idは外部キー。
+違いは中間テーブルの有無だけで、やってることは同じ。実際にはrailsが中間テーブルを自動生成してくれるので、2,3も1のようなテーブルになる。
+ではER図を元にrailsで実装してみる。
+1. 中間テーブルを作成し、has_many :throughを使った場合 rails g modelコマンドを用いて、テーブルを作成する。
+$ rails g model image name:string url:string $ rails g model tag name:string $ rails g model image_tag image:references tag:references  テーブル名が単数形であることに注意。railsではActive Record経由で自動的に複数形にしてくれる。
+中間テーブルと関連付けさせる。
+class Image &lt; ActiveRecord::Base has_many :image_tags has_many :tags, :through =&gt; :image_tags end  class Tag &lt; ActiveRecord::Base has_many :image_tags has_many :images, :through =&gt; :image_tags end  class ImageTag &lt; ActiveRecord::Base belongs_to :image belongs_to :tag end  ちなみにmigrateファイルは以下のようになっている。">
+
+
+<meta itemprop="dateModified" content="2014-10-16T22:59:33-09:00" />
+<meta itemprop="wordCount" content="419">
+
+
+
+<meta itemprop="keywords" content="programming,ネットワーク,プログラミング,環境構築,開発手法,api,basic,binstubs,capybara,coffee,command,config,controller,datetime,db,erb,er図,factory_girl,foreigner,gem,get,git,github,github-flow,guard,haml,has_one,heroku,intellij,ip,ipoe,ipv4,ipv6,isp,java,java8,jbuilder,json,jst,kvs,less,mac,match,migrate,model,network,newrelic,nosql,oreilly,parse,ping,postgres,postgresql,production,pry,public,rails,rails4,rake,redis,routing,rspec,ruby,sass,scaffold,scss,slim,speedtest,spring,table,test,timestamp,timezone,travis,type,uri,url,utc,vagrant,vne,yaml,オライリー,グローバル参照,コマンド,スリープ,チーム,テーブル,デプロイ,パース,メモ,ルーティング,図解,外部キー,外部キー制約,外部キー嫌い,多対多,時間,環境変数," />
+
+
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="railsで多対多のテーブルを実装する"/>
+<meta name="twitter:title" content="railsで多対多のテーブルを実装する"/>
+<meta name="twitter:description" content="railsでmodelを作成するとき、多対多の実装方法が分かりづらかったのでまとめてみた。 railsでの多対多の書き方はいろいろあるらしい。
+ 中間テーブルを作成し、has_many :throughを使う has_and_belongs_to_manyを使う create_join_tableを使う  1 → 3の順に情報が多い気がする。手軽さ的には 3 → 1の順かな。
+個人的には1がおすすめ。理由としては、中間テーブル名を用いてDBにアクセス出来ることと、中間テーブルに属性を後で付加できるから。
+例として画像にtagデータを持たせるテーブルを考える。
+Toxi法で多対多のテーブルを作成する。railsの規約に沿ってDB設計をした。ER図は以下の通り。
+1の場合  2, 3の場合  imagesテーブルにはnameとURLの情報を保存し、tagsテーブルにはnameの情報を保存させる。tag_idとimage_idは外部キー。
+違いは中間テーブルの有無だけで、やってることは同じ。実際にはrailsが中間テーブルを自動生成してくれるので、2,3も1のようなテーブルになる。
+ではER図を元にrailsで実装してみる。
+1. 中間テーブルを作成し、has_many :throughを使った場合 rails g modelコマンドを用いて、テーブルを作成する。
+$ rails g model image name:string url:string $ rails g model tag name:string $ rails g model image_tag image:references tag:references  テーブル名が単数形であることに注意。railsではActive Record経由で自動的に複数形にしてくれる。
+中間テーブルと関連付けさせる。
+class Image &lt; ActiveRecord::Base has_many :image_tags has_many :tags, :through =&gt; :image_tags end  class Tag &lt; ActiveRecord::Base has_many :image_tags has_many :images, :through =&gt; :image_tags end  class ImageTag &lt; ActiveRecord::Base belongs_to :image belongs_to :tag end  ちなみにmigrateファイルは以下のようになっている。"/>
+
+
+
+    </head>
+<body>
+    <nav class="main-nav">
+	
+		<a href='https://b.pyar.bz/'> <span class="arrow">←</span>Home</a>
+	
+
+	
+
+	
+		<a class="cta" href="https://b.pyar.bz/index.xml">Subscribe</a>
+	
+</nav>
+
+    <section id="wrapper">
+        
+        
+<article class="post">
+    <header>
+        <h1>railsで多対多のテーブルを実装する</h1>
+        <h2 class="headline">
+        October 16, 2014
+        <br>
+        
+        
+            
+                <a href="https://b.pyar.bz/tags/ruby">ruby</a>
+            
+                <a href="https://b.pyar.bz/tags/rails">rails</a>
+            
+                <a href="https://b.pyar.bz/tags/rails4">rails4</a>
+            
+                <a href="https://b.pyar.bz/tags/model">model</a>
+            
+                <a href="https://b.pyar.bz/tags/%E5%A4%9A%E5%AF%BE%E5%A4%9A">多対多</a>
+            
+                <a href="https://b.pyar.bz/tags/er%E5%9B%B3">ER図</a>
+            
+                <a href="https://b.pyar.bz/tags/migrate">migrate</a>
+            
+                <a href="https://b.pyar.bz/tags/table">table</a>
+            
+                <a href="https://b.pyar.bz/tags/%E3%83%86%E3%83%BC%E3%83%96%E3%83%AB">テーブル</a>
+            
+        
+        
+        </h2>
+    </header>
+    <section id="post-body">
+        
+
+<p>railsでmodelを作成するとき、多対多の実装方法が分かりづらかったのでまとめてみた。
+railsでの多対多の書き方はいろいろあるらしい。</p>
+
+<ol>
+<li><a href="#1">中間テーブルを作成し、<code>has_many :through</code>を使う</a></li>
+<li><a href="#2"><code>has_and_belongs_to_many</code>を使う</a></li>
+<li><a href="#3"><code>create_join_table</code>を使う</a></li>
+</ol>
+
+<p>1 → 3の順に情報が多い気がする。手軽さ的には 3 → 1の順かな。</p>
+
+<p>個人的には1がおすすめ。理由としては、<strong>中間テーブル名を用いてDBにアクセス出来る</strong>ことと、<strong>中間テーブルに属性を後で付加できる</strong>から。</p>
+
+<p>例として<strong>画像にtagデータを持たせる</strong>テーブルを考える。</p>
+
+<p>Toxi法で多対多のテーブルを作成する。<a href="http://b.pyar.bz/blog/2014/10/15/model/">railsの規約</a>に沿ってDB設計をした。ER図は以下の通り。</p>
+
+<h3 id="1の場合">1の場合</h3>
+
+<div><img width="100%" src="https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/model/many_many.png"></div>
+
+<h3 id="2-3の場合">2, 3の場合</h3>
+
+<div><img width="80%" src="https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/model/many_many_no_.png"></div>
+
+<p><code>images</code>テーブルには<code>name</code>と<code>URL</code>の情報を保存し、<code>tags</code>テーブルには<code>name</code>の情報を保存させる。<code>tag_id</code>と<code>image_id</code>は外部キー。</p>
+
+<p>違いは中間テーブルの有無だけで、やってることは同じ。実際にはrailsが中間テーブルを自動生成してくれるので、2,3も1のようなテーブルになる。</p>
+
+<p>ではER図を元にrailsで実装してみる。</p>
+
+<h2><a name="1" class="content-link">1. 中間テーブルを作成し、<code>has_many :through</code>を使った場合</a></h2>
+
+<p><code>rails g model</code>コマンドを用いて、テーブルを作成する。</p>
+
+<pre><code>$ rails g model image name:string url:string
+$ rails g model tag name:string
+$ rails g model image_tag image:references tag:references
+</code></pre>
+
+<p>テーブル名が単数形であることに注意。railsではActive Record経由で自動的に複数形にしてくれる。</p>
+
+<p>中間テーブルと関連付けさせる。</p>
+
+<pre><code>class Image &lt; ActiveRecord::Base
+  has_many :image_tags
+  has_many :tags, :through =&gt; :image_tags
+end
+</code></pre>
+
+<pre><code>class Tag &lt; ActiveRecord::Base
+  has_many :image_tags
+  has_many :images, :through =&gt; :image_tags
+end
+</code></pre>
+
+<pre><code>class ImageTag &lt; ActiveRecord::Base
+  belongs_to :image
+  belongs_to :tag
+end
+</code></pre>
+
+<p>ちなみにmigrateファイルは以下のようになっている。</p>
+
+<pre><code>class CreateImages &lt; ActiveRecord::Migration
+  def change
+    create_table :images do |t|
+      t.string :name
+      t.string :url
+
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+
+<pre><code>class CreateTags &lt; ActiveRecord::Migration
+  def change
+    create_table :tags do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+
+<pre><code>class CreateImageTags &lt; ActiveRecord::Migration
+  def change
+    create_table :image_tags do |t|
+      t.references :image, index: true, null: false
+      t.references :tag, index: true, null: false
+
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+
+<p>外部キーに<code>not null</code>制約を付加している。</p>
+
+<p>最後にマイグレートする</p>
+
+<pre><code>$ rake db:migrate
+</code></pre>
+
+<h2><a name="2" class="content-link">2. <code>has_and_belongs_to_many</code>を使った場合</a></h2>
+
+<p><code>rails g model</code>コマンドを用いて、テーブルを作成する。</p>
+
+<pre><code>$ rails g model image name:string url:string
+$ rails g model tag name:string
+$ rails g migration create_images_tags image:references tag:references
+</code></pre>
+
+<p>中間テーブルは作らない。migrationファイルで関連付けさせる。</p>
+
+<p>テーブルを関連付けさせる。</p>
+
+<pre><code>class Image &lt; ActiveRecord::Base
+  has_and_belongs_to_many :tags
+end
+</code></pre>
+
+<pre><code>class Tag &lt; ActiveRecord::Base
+  has_and_belongs_to_many :images
+end
+</code></pre>
+
+<p>migrationファイルを編集する</p>
+
+<p><code>元のファイル</code></p>
+
+<pre><code>class CreateImagesTags &lt; ActiveRecord::Migration
+  def change
+    create_table :images_tags do |t|
+      t.references :image, index: true
+      t.references :tag, index: true
+    end
+  end
+end
+</code></pre>
+
+<p>これを<code>has_and_belongs_to_many</code>の規約で編集する</p>
+
+<blockquote>
+<h4 id="has-and-belongs-to-many-アソシエーションの規約">has_and_belongs_to_many アソシエーションの規約</h4>
+
+<ul>
+<li>中間テーブルを作成しなければならない。</li>
+<li>中間テーブルのテーブル名は参照先のテーブル名を辞書順に「_」で連結しなければならない。(※)</li>
+<li>中間テーブルの主キー列を無効化しなくてはならない。</li>
+<li>中間テーブルの外部キー列は「参照先のモデル名_id」の形式にしなければならない。</li>
+<li>中間テーブルのタイムスタンプ列を削除しなくてはならない。</li>
+</ul>
+</blockquote>
+
+<p><code>変更後</code></p>
+
+<pre><code>class CreateImagesTags &lt; ActiveRecord::Migration
+  def change
+    create_table :images_tags, id: false do |t|
+      t.references :image, index: true, null: false
+      t.references :tag, index: true, null: false
+    end
+  end
+end
+</code></pre>
+
+<p>外部キーに<code>not null</code>制約を付加している。</p>
+
+<p>変更前に<code>id: false</code>を追加しただけ。外部キー名を明記しないのは、自動生成してくれるため。</p>
+
+<p>ちなみに他のmigrateファイルは以下のようになっている。</p>
+
+<pre><code>class CreateImages &lt; ActiveRecord::Migration
+  def change
+    create_table :images do |t|
+      t.string :name
+      t.string :url
+
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+
+<pre><code>class CreateTags &lt; ActiveRecord::Migration
+  def change
+    create_table :tags do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+
+<p>最後にマイグレートする</p>
+
+<pre><code>$ rake db:migrate
+</code></pre>
+
+<h2><a name="3" class="content-link">3. <code>create_join_table</code>を使った場合</a></h2>
+
+<p><code>rails g model</code>コマンドを用いて、テーブルを作成する。</p>
+
+<pre><code>$ rails g model image name:string url:string
+$ rails g model tag name:string
+$ rails g migration create_join_table_images_tags image tag
+</code></pre>
+
+<p>中間テーブルは作らない。migrationファイルで関連付けさせる。</p>
+
+<p>テーブルを関連付けさせる。</p>
+
+<pre><code>class Image &lt; ActiveRecord::Base
+  has_and_belongs_to_many :tags
+end
+</code></pre>
+
+<pre><code>class Tag &lt; ActiveRecord::Base
+  has_and_belongs_to_many :images
+end
+</code></pre>
+
+<p>migrationファイルを編集する</p>
+
+<p><code>元のファイル</code></p>
+
+<pre><code>class CreateJoinTableImagesTags &lt; ActiveRecord::Migration
+  def change
+    create_join_table :images, :tags do |t|
+      # t.index [:image_id, :tag_id]
+      # t.index [:tag_id, :image_id]
+    end
+  end
+end
+</code></pre>
+
+<p>コメントアウトを外す。</p>
+
+<p><code>変更後</code></p>
+
+<pre><code>class CreateJoinTableImagesTags &lt; ActiveRecord::Migration
+  def change
+    create_join_table :images, :tags do |t|
+      t.index [:image_id, :tag_id]
+      t.index [:tag_id, :image_id]
+    end
+  end
+end
+</code></pre>
+
+<p>ちなみに他のmigrateファイルは以下のようになっている。</p>
+
+<pre><code>class CreateImages &lt; ActiveRecord::Migration
+  def change
+    create_table :images do |t|
+      t.string :name
+      t.string :url
+
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+
+<pre><code>class CreateTags &lt; ActiveRecord::Migration
+  def change
+    create_table :tags do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+
+<p>最後にマイグレートする</p>
+
+<pre><code>$ rake db:migrate
+</code></pre>
+
+    </section>
+</article>
+
+<footer id="post-meta" class="clearfix">
+    
+    <img class="avatar" src="https://b.pyar.bz/images/avatar.png">
+    <div>
+        <span class="dark">@pyar6329</span>
+        <span>I&#39;m programmer.</span>
+    </div>
+    
+    <section id="sharing">
+        <a class="twitter" href="https://twitter.com/intent/tweet?text=https%3a%2f%2fb.pyar.bz%2f20141016%2fmany-to-many-table - rails%e3%81%a7%e5%a4%9a%e5%af%be%e5%a4%9a%e3%81%ae%e3%83%86%e3%83%bc%e3%83%96%e3%83%ab%e3%82%92%e5%ae%9f%e8%a3%85%e3%81%99%e3%82%8b "><span class="icon-twitter"> tweet</span></a>
+
+<a class="facebook" href="#" onclick="
+    window.open(
+      'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+      'facebook-share-dialog',
+      'width=626,height=436');
+    return false;"><span class="icon-facebook-rect"> Share</span>
+</a>
+
+    </section>
+</footer>
+
+
+
+<ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="https://b.pyar.bz/20170608/api-uri">APIのURIを短くする<aside class="dates">Jun 8 2017</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20170324/ipv6">あなたのお家の光回線速度を上げる方法<aside class="dates">Mar 24 2017</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20160628/redis-keys">redisのkeyについて調べてみた<aside class="dates">Jun 28 2016</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141027/rails-timezone">RailsでのtimezoneをUTCにする<aside class="dates">Oct 27 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141023/has-one">has-oneが動作しなかったのでclass_nameを追加した<aside class="dates">Oct 23 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/mac-postgresql-installation">macでPostgreSQLをインストールする<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/migrate-command">migrateコマンドを省略する<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/rake-db-migrate">railsで動作モードを変更する<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/foreigner">railsに外部キー制約を追加してみた<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141016/model">railsのmodelについて調べてみた<aside class="dates">Oct 16 2014</aside></a>
+        </li>
+    
+</ul>
+
+
+
+        <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://www.github.com/pyar6329">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+        © Copyright 2017 @pyar6329
+    
+    </p>
+</footer>
+
+    </section>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://b.pyar.bz/js/main.js"></script>
+<script src="https://b.pyar.bz/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47263119-3', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+</body>
+</html>

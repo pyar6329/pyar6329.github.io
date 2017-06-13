@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Controller on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/controller/index.xml</link>
+    <description>Recent content in Controller on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/controller/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>railsのよく使うコマンドをまとめてみた</title>
+      <link>https://b.pyar.bz/20141015/rails-command</link>
+      <pubDate>Wed, 15 Oct 2014 23:47:39 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141015/rails-command</guid>
+      <description>
+
+&lt;p&gt;Scaffoldは使わない気がする。大体使うのcontrollerとmodelだなぁ。&lt;/p&gt;
+
+&lt;h3 id=&#34;controller&#34;&gt;Controller&lt;/h3&gt;
+
+&lt;p&gt;作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g controller コントローラ名 メソッド名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;削除&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails d controller コントローラ名 メソッド名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;model&#34;&gt;Model&lt;/h3&gt;
+
+&lt;p&gt;作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g model モデル名 カラム名1:型 カラム名2:型 ・・・・
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;削除&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails d model モデル名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;migration&#34;&gt;Migration&lt;/h3&gt;
+
+&lt;p&gt;DBの適用&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;DBを1つ前に戻す&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rake db:rollback
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;DBを最初に戻す&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rake db:migrate VERSION=0
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;test-rspec時&#34;&gt;Test(rspec時)&lt;/h3&gt;
+
+&lt;p&gt;modelテスト作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g rspec:model テスト名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;controllerテスト作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g rspec:controller テスト名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;viewテスト作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g rspec:view テスト名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;コマンド一覧&#34;&gt;コマンド一覧&lt;/h2&gt;
+
+&lt;p&gt;参考: &lt;a href=&#34;http://d.hatena.ne.jp/maeharin/20130212/rails_generate&#34;&gt;maeharinの日記&lt;/a&gt;&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;center&#34;&gt;コマンド名&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;コントローラ&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;ビュー&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;モデル&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;マイグレーション&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;アセット&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;ルート&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;テスト&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;ヘルパー&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;scaffold&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;scaffold_controller&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;controller&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;model&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;migration&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

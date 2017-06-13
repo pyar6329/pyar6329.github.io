@@ -1,0 +1,1823 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Rails on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/rails/index.xml</link>
+    <description>Recent content in Rails on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/rails/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>APIのURIを短くする</title>
+      <link>https://b.pyar.bz/20170608/api-uri</link>
+      <pubDate>Thu, 08 Jun 2017 00:11:52 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20170608/api-uri</guid>
+      <description>
+
+&lt;p&gt;&lt;a href=&#34;http://amzn.to/2sFDy2E&#34;&gt;Web API: The Good Parts&lt;/a&gt;を読んだのでその整理&lt;/p&gt;
+
+&lt;h1 id=&#34;uriを短くする&#34;&gt;URIを短くする&lt;/h1&gt;
+
+&lt;p&gt;APIのURI設計をしていると、親子関係があるデータを扱う時URIが長くなる&lt;br /&gt;
+例えば&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;blogが複数の記事をもつ&lt;/li&gt;
+&lt;li&gt;記事は複数のコメントを持つ&lt;/li&gt;
+&lt;li&gt;コメントは複数の返信コメントをもつ&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;集合で表すと &lt;code&gt;blogs ∋ articles ∋ comments ∋ replies&lt;/code&gt;&lt;br /&gt;
+railsだと以下のようになる&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ rails routes
+      Prefix Verb   URI Pattern                                                Controller#Action
+     replies GET    /blogs/:id/articles/:id/comments/:id/replies(.:format)     replies#index
+             POST   /blogs/:id/articles/:id/comments/:id/replies(.:format)     replies#create
+       reply GET    /blogs/:id/articles/:id/comments/:id/replies/:id(.:format) replies#show
+             PATCH  /blogs/:id/articles/:id/comments/:id/replies/:id(.:format) replies#update
+             PUT    /blogs/:id/articles/:id/comments/:id/replies/:id(.:format) replies#update
+             DELETE /blogs/:id/articles/:id/comments/:id/replies/:id(.:format) replies#destroy
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;とてもじゃないが、使えたものじゃない…&lt;br /&gt;
+Herokuではどうしているかというと、&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Limit nesting depth by preferring to locate resources at the root path. Use nesting to indicate scoped collections. For example, for the case above where a dyno belongs to an app belongs to an org:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;/orgs/{org_id}
+/orgs/{org_id}/apps
+/apps/{app_id}
+/apps/{app_id}/dynos
+/dynos/{dyno_id}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://geemus.gitbooks.io/http-api-design/content/en/requests/minimize-path-nesting.html&#34;&gt;Minimize path nesting by Heroku(HTTP API Design Guide)&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;つまり、ネストの深さを制限するのと親子は集合を表すのが大事&lt;/p&gt;
+
+&lt;h1 id=&#34;実際にやってみる&#34;&gt;実際にやってみる&lt;/h1&gt;
+
+&lt;p&gt;blogが複数の記事を持つものとする&lt;br /&gt;
+集合で表すと &lt;code&gt;blogs ∋ articles&lt;/code&gt;&lt;br /&gt;
+articleをrailsでscaffoldすると次のリソースになる&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ rails routes
+      Prefix Verb   URI Pattern             Controller#Action
+    articles GET    /articles(.:format)     articles#index
+             POST   /articles(.:format)     articles#create
+     article GET    /articles/:id(.:format) articles#show
+             PATCH  /articles/:id(.:format) articles#update
+             PUT    /articles/:id(.:format) articles#update
+             DELETE /articles/:id(.:format) articles#destroy
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;これが親子関係になると次のリソースになる&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ rails routes
+      Prefix Verb   URI Pattern                       Controller#Action
+    articles GET    /blogs/:id/articles(.:format)     articles#index
+             POST   /blogs/:id/articles(.:format)     articles#create
+     article GET    /blogs/:id/articles/:id(.:format) articles#show
+             PATCH  /blogs/:id/articles/:id(.:format) articles#update
+             PUT    /blogs/:id/articles/:id(.:format) articles#update
+             DELETE /blogs/:id/articles/:id(.:format) articles#destroy
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;が、ネストが深い&lt;br /&gt;
+ここでHerokuのURI設計を参考にするとこうなる&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ rails routes
+      Prefix Verb   URI Pattern                       Controller#Action
+    articles GET    /blogs/:id/articles(.:format)     articles#index
+             POST   /blogs/:id/articles(.:format)     articles#create
+     article GET    /articles/:id(.:format)           articles#show
+             PATCH  /articles/:id(.:format)           articles#update
+             PUT    /articles/:id(.:format)           articles#update
+             DELETE /articles/:id(.:format)           articles#destroy
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;新規作成と一覧取得は親子関係の状態で持ってくる, 作成するのでそのまま。&lt;br /&gt;
+詳細取得と更新、削除は一意な値で判断して編集するので、省略できる。&lt;br /&gt;
+blogに属さない記事は存在しないので、こんな感じで良さそう。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>RailsでのtimezoneをUTCにする</title>
+      <link>https://b.pyar.bz/20141027/rails-timezone</link>
+      <pubDate>Mon, 27 Oct 2014 18:38:11 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141027/rails-timezone</guid>
+      <description>
+
+&lt;p&gt;Railsで時間情報を扱う場合、JSTだとグローバル対応した時にいろいろ面倒。&lt;/p&gt;
+
+&lt;p&gt;なのでデータ情報は全てUTCで扱って、取得するときのみJSTに変換するようにする。&lt;/p&gt;
+
+&lt;p&gt;注意点としては以下の通り。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;modelで&lt;code&gt;datetime型&lt;/code&gt;に情報を渡す場合、&lt;code&gt;ActiveSupport::TimeWithZone&lt;/code&gt;型で渡しておく。&lt;/li&gt;
+&lt;li&gt;modelで&lt;code&gt;datetime型&lt;/code&gt;から情報を受け取る場合、JST時間に変換する。&lt;/li&gt;
+&lt;li&gt;現在時刻を扱う場合、&lt;code&gt;Time.now&lt;/code&gt;は使わずに&lt;code&gt;Time.zone.now&lt;/code&gt;を使う。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;設定&#34;&gt;設定&lt;/h2&gt;
+
+&lt;p&gt;日本在住の場合、初期設定時は以下のようになっている。&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;初期値&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Rails&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;UTC&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Rails ActiveRecord&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;UTC&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Heroku&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;UTC&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Heroku Postgres&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;UTC&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Amazon RDS&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;UTC&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;OS&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;JST&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Homebrew(PostgreSQL)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;JST&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Rails、Heroku、RDS、OS辺りは特に設定はいらない。&lt;/p&gt;
+
+&lt;p&gt;自分のPCにpostgreSQLをインストールした場合は&lt;a href=&#34;http://b.pyar.bz/blog/2014/10/21/mac-postgresql-installation&#34;&gt;timezoneをUTCに設定しておく&lt;/a&gt;。&lt;/p&gt;
+
+&lt;h2 id=&#34;例&#34;&gt;例&lt;/h2&gt;
+
+&lt;p&gt;以下のplaysテーブルを例として考える。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/timezone/plays.png&#34;&gt;&lt;/p&gt;
+
+&lt;p&gt;まずmodelを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model play played_at:datetime
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;現在の時間を渡す場合&#34;&gt;現在の時間を渡す場合&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class Play &amp;lt; ActiveRecord::Base
+  play = Play.new()
+  play.played_at = Time.zone.now
+  play.save
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;文字列の時間を渡す場合&#34;&gt;文字列の時間を渡す場合&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class Play &amp;lt; ActiveRecord::Base
+  d_time = &amp;quot;Mon, 27 Oct 2014 17:44:24 +0900&amp;quot;
+  played_at = DateTime.strptime(d_time, &#39;%a, %d %b %Y %T %z&#39;).in_time_zone
+
+  play = Play.new()
+  hoge.played_at = played_at
+  play.save
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;modelから時間を取得する場合&#34;&gt;modelから時間を取得する場合&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class Play &amp;lt; ActiveRecord::Base
+  play1 = Play.find(1)
+  played_time = play1.played_at.in_time_zone(&#39;Tokyo&#39;)
+end
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>has-oneが動作しなかったのでclass_nameを追加した</title>
+      <link>https://b.pyar.bz/20141023/has-one</link>
+      <pubDate>Thu, 23 Oct 2014 17:01:54 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141023/has-one</guid>
+      <description>&lt;p&gt;次のようなmodelがある。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Detail &amp;lt; ActiveRecord::Base
+  has_one :files, :dependent =&amp;gt; :destroy
+  has_one :folders, :dependent =&amp;gt; :destroy
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;has_manyはいいんだけど、has_oneはこのままだと動作しない。
+なので&lt;code&gt;class_name&lt;/code&gt;を追加する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Detail &amp;lt; ActiveRecord::Base
+  has_one :files, :class_name =&amp;gt; &#39;File&#39;, :dependent =&amp;gt; :destroy
+  has_one :folders, :class_name =&amp;gt; &#39;Folder&#39;, :dependent =&amp;gt; :destroy
+end
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>macでPostgreSQLをインストールする</title>
+      <link>https://b.pyar.bz/20141021/mac-postgresql-installation</link>
+      <pubDate>Tue, 21 Oct 2014 20:20:23 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141021/mac-postgresql-installation</guid>
+      <description>
+
+&lt;p&gt;sqliteでは外部キー制約が使えるようになったが、gemの&lt;code&gt;foreigner&lt;/code&gt;では使えないらしい。なのでdevelopmentの確認用にpostgreSQLを使うことにした。&lt;/p&gt;
+
+&lt;p&gt;macでhomebrewを用いてpostgreSQLをインストールする。&lt;/p&gt;
+
+&lt;h2 id=&#34;クライアント専用として使う場合&#34;&gt;クライアント専用として使う場合&lt;/h2&gt;
+
+&lt;p&gt;自動起動はいらないのでインストールだけでOK。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ brew install postgresql
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;サーバとして使う場合&#34;&gt;サーバとして使う場合&lt;/h2&gt;
+
+&lt;p&gt;インストールする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ brew install postgresql
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;homebrewで作られた起動設定ファイルにシンボリックリンクを貼る&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ ln -sfv /usr/local/opt/postgresql/*.plist ~/Library/LaunchAgents
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ログイン時に自動起動させる。このコマンドを打った時点で起動する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ launchctl load -w ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみにログイン時に自動起動させなくする場合は以下のコマンド。このコマンドを打った時点で終了する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ launchctl unload -w ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;去年位までは&lt;code&gt;$ initdb /usr/local/var/postgres -E utf8&lt;/code&gt;ってコマンドで初期文字コードを指定していたが、2014年10月21日現在、初期値が&lt;code&gt;ja_JP.utf-8&lt;/code&gt;になっていたのでいらないっぽい。&lt;/p&gt;
+
+&lt;h2 id=&#34;設定ファイルを弄る&#34;&gt;設定ファイルを弄る&lt;/h2&gt;
+
+&lt;p&gt;shellに設定を書き込む。&lt;/p&gt;
+
+&lt;h3 id=&#34;zshの場合&#34;&gt;zshの場合&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;$ touch ~/.zprofile
+$ echo &#39;export ARCHFLAGS=&amp;quot;-arch x86_64&amp;quot;&#39; &amp;gt;&amp;gt; ~/.zprofile
+$ echo &#39;export PGDATA=&amp;quot;/usr/local/var/postgres&amp;quot;&#39; &amp;gt;&amp;gt; ~/.zprofile
+$ source ~/.zprofile
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;bashの場合&#34;&gt;bashの場合&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;$ touch ~/.bash_profile
+$ echo &#39;export ARCHFLAGS=&amp;quot;-arch x86_64&amp;quot;&#39; &amp;gt;&amp;gt; ~/.bash_profile
+$ echo &#39;export PGDATA=&amp;quot;/usr/local/var/postgres&amp;quot;&#39; &amp;gt;&amp;gt; ~/.bash_profile
+$ source ~/.bash_profile
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;ARCHFLAGS&lt;/code&gt;はgemで使う場合のみ追加。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;PGDATA&lt;/code&gt;は&lt;code&gt;$ postgres -D /usr/local/var/postgres&lt;/code&gt;で起動させるがそれを&lt;code&gt;$ postgres&lt;/code&gt;だけに省略できる。ただ自動起動の設定を使うとこのコマンドを使うことはない気がする。&lt;code&gt;launchctl load -w&lt;/code&gt;、&lt;code&gt;launchctl unload -w&lt;/code&gt;で起動、終了できるし。&lt;/p&gt;
+
+&lt;p&gt;ちなみに.zprofile, .bash_profileはログイン時に1度しか読み込まれない。このままではシェル(terminal)を閉じると反映されない。なので一度ログアウトして反映させる。&lt;/p&gt;
+
+&lt;p&gt;外部公開とかはしないので、新規にユーザーを作成したりはしない。&lt;/p&gt;
+
+&lt;h2 id=&#34;passwordの設定&#34;&gt;Passwordの設定&lt;/h2&gt;
+
+&lt;p&gt;まずpostgresにログインする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ psql postgres
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;パスワードを設定する&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;postgres=# \password
+postgres=# \q
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;このままではログイン時にパスワードを聞かれないので設定を変更する。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;変更前&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;# &amp;quot;local&amp;quot; is for Unix domain socket connections only
+local   all             all                                     trust
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            trust
+# IPv6 local connections:
+host    all             all             ::1/128                 trust
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;trustをmd5にする。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;変更後&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;# &amp;quot;local&amp;quot; is for Unix domain socket connections only
+local   all             all                                     md5
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            md5
+# IPv6 local connections:
+host    all             all             ::1/128                 md5
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;設定を反映させるためにpostgresを再起動する&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ launchctl unload -w ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+$ launchctl load -w ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;パスワードを聞かれないようにする&#34;&gt;パスワードを聞かれないようにする&lt;/h2&gt;
+
+&lt;p&gt;パスワードを設定したが、ログイン時に一々聞かれると面倒。
+なのでパスワードを設定ファイルに書いておく。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ touch ~/.pgpass
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;中には&lt;code&gt;ホスト名:ポート番号:データベース名:ユーザー名:パスワード&lt;/code&gt;のように書く。ワイルドカード&lt;code&gt;*&lt;/code&gt;でもOK。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;例&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;localhost:5432:*:pyarbz:hogepass
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみにこれは、外部にPostgresqlがある場合でも使える。アクセスするものが複数あれば、複数行書く。&lt;/p&gt;
+
+&lt;h2 id=&#34;timezoneをutcに変更する&#34;&gt;TimezoneをUTCに変更する&lt;/h2&gt;
+
+&lt;p&gt;RailsではDBにUTCとして保存し、取り出して使うときにその地域に合わせて変更した方がいいらしい。&lt;/p&gt;
+
+&lt;p&gt;また、Heroku PostgreSQLやAmazon RDSなど海外サーバを用いることが多いので、UTCに変更しておく。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;変更前&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;log_timezone = &#39;Japan&#39;
+timezone = &#39;Japan&#39;
+lc_messages = &#39;ja_JP.UTF-8&#39;
+lc_monetary = &#39;ja_JP.UTF-8&#39;
+lc_numeric = &#39;ja_JP.UTF-8&#39;
+lc_time = &#39;ja_JP.UTF-8&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;変更後&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;log_timezone = &#39;UTC&#39;
+timezone = &#39;UTC&#39;
+lc_messages = &#39;ja_JP.UTF-8&#39;
+lc_monetary = &#39;ja_JP.UTF-8&#39;
+lc_numeric = &#39;ja_JP.UTF-8&#39;
+lc_time = &#39;en_US.UTF-8&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;postgresqlコマンド集&#34;&gt;PostgreSQLコマンド集&lt;/h2&gt;
+
+&lt;h3 id=&#34;データベース&#34;&gt;データベース&lt;/h3&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;postgres内のコマンド&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;shellのコマンド&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;一覧&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\l&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;psql -l&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;作成&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;CREATE DATABASE データベース名;&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;createdb データベース名 -U 使うユーザー名&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;選択&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\c データベース名&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;psql データベース名&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;削除&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;DROP DATABASE データベース名;&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;dropdb データベース名&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&#34;テーブル&#34;&gt;テーブル&lt;/h3&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;postgres内のコマンド&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;shellのコマンド&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;一覧&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\d&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;作成&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;CREATE TABLE テーブル名(id int, name varchar(255).....);&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;削除&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;DROP TABLE products;&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&#34;ユーザー&#34;&gt;ユーザー&lt;/h3&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;postgres内のコマンド&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;shellのコマンド&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;一覧&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\du&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;作成&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;createuser -P ユーザー名;&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;作成(スーパー)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;createuser -s -P ユーザー名;&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;削除&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;dropuser ユーザー名&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;パスワード設定時のアクセス&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\password&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;psql -U postgres template1&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;パスワード変更&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;ALTER USER postgres encrypted password &#39;パスワード&#39;;&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&#34;その他&#34;&gt;その他&lt;/h3&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;postgres内のコマンド&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;shellのコマンド&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;終了&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\q&lt;/code&gt; または&lt;code&gt;ctrl+d&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;help&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\?&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>migrateコマンドを省略する</title>
+      <link>https://b.pyar.bz/20141021/migrate-command</link>
+      <pubDate>Tue, 21 Oct 2014 20:16:03 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141021/migrate-command</guid>
+      <description>&lt;p&gt;railsでDBに反映するにはmigrateするが、リセットして一からやり直したいことがある。
+その時は普通以下のコマンドを入力する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:drop
+$ rake db:create
+$ rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ただし3回も打つのは面倒臭い。なので一行で打つとこうなる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:drop db:create db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;さらにこれはもっと省略できて、以下のコマンドで実現できる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate:reset
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsで動作モードを変更する</title>
+      <link>https://b.pyar.bz/20141021/rake-db-migrate</link>
+      <pubDate>Tue, 21 Oct 2014 17:14:06 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141021/rake-db-migrate</guid>
+      <description>&lt;p&gt;テストモードで動かす&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails s -e test
+$ rake db:migrate Rails_ENV=test
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;実行環境モードで動かす&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails s -e production
+$ rake db:migrate Rails_ENV=production
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsに外部キー制約を追加してみた</title>
+      <link>https://b.pyar.bz/20141021/foreigner</link>
+      <pubDate>Tue, 21 Oct 2014 05:31:16 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141021/foreigner</guid>
+      <description>
+
+&lt;p&gt;データベースに関して調べることって、業務的な側面から、わかりづらい単語や言葉ばっかり使って理解しづらいよね。
+誰でも分かるように説明するのがプロなんだよなぁ。。。。まぁいいか。&lt;/p&gt;
+
+&lt;p&gt;プログラミングそのものに関してはそうでもないんだけどな。なので身近にあるもので例えてみる。&lt;/p&gt;
+
+&lt;h2 id=&#34;外部キー-foreign-key-とは&#34;&gt;外部キー(foreign key)とは&lt;/h2&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;リレーショナルデータベース(RDB)で、テーブルのある列に、別のテーブルの特定の列に含まれる項目しか入力できないようにする制約。また、その際に指定する列。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;参考: &lt;a href=&#34;http://e-words.jp/w/E5A496E983A8E382ADE383BC.html&#34;&gt;e-words.jp&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;うん言葉で言ってもわかりづらいｗ&lt;/p&gt;
+
+&lt;p&gt;図で表してみる。&lt;/p&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/anime2.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;この左側の赤いやつが&lt;code&gt;外部キー&lt;/code&gt;。別のテーブルの主キーを指してるでしょ？また、別のテーブルの主キーは&lt;code&gt;参照キー&lt;/code&gt;と呼ばれる。&lt;/p&gt;
+
+&lt;h2 id=&#34;外部キーの問題って&#34;&gt;外部キーの問題って？&lt;/h2&gt;
+
+&lt;p&gt;じゃあもし外部キーの参照先が更新されたり、削除されたらどうなるか。&lt;/p&gt;
+
+&lt;p&gt;animeテーブルの&lt;code&gt;id = 2&lt;/code&gt;から&lt;code&gt;id = 5&lt;/code&gt;に更新してみる。&lt;/p&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/anime3.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code&gt;anime_id = 2&lt;/code&gt;の状態ではあるけど、指している場所にデータがない。どこ指してるかわからない。&lt;/p&gt;
+
+&lt;p&gt;参照整合性が取れない。いわゆる&lt;code&gt;迷子レコード&lt;/code&gt;になる。&lt;/p&gt;
+
+&lt;h2 id=&#34;なぜ外部キー制約を使うか&#34;&gt;なぜ外部キー制約を使うか&lt;/h2&gt;
+
+&lt;p&gt;じゃあこれをどうするかというと、以下の2通りの方法を行う。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;アプリ側で監視する&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;外部キー制約&lt;/code&gt;を使う&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;普通は1を使うんだけど、1にも以下の問題点がある。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;スクリプトを全ての参照に対して行う必要がある&lt;/li&gt;
+&lt;li&gt;チェックを毎日、何回も実行しなければならない&lt;/li&gt;
+&lt;li&gt;参照が壊れていた場合でも修正できるかはわからない&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;この位の小さいテーブルだったらスクリプトでもいいけど、親、子、孫&amp;hellip;と何個も組み合わさっているとチェックできるかは怪しい。&lt;/p&gt;
+
+&lt;p&gt;そこで2の手法、&lt;code&gt;外部キー制約&lt;/code&gt;を使う。&lt;/p&gt;
+
+&lt;p&gt;ちなみに、これはオライリーの&lt;code&gt;SQLアンチパターン&lt;/code&gt;に&lt;code&gt;外部キー嫌い&lt;/code&gt;って項目で書いてある。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.amazon.co.jp/gp/product/4873115892/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;camp=247&amp;creative=1211&amp;creativeASIN=4873115892&amp;linkCode=as2&amp;tag=pyar6329-22&#34;&gt;&lt;img width=&#34;50%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/sql_anch.jpg&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;この本、結構面白くてSQLでダメなことが一通り書いてある。
+DB設計時にこれどうすればいいんだろうってのが結構解決する。俺でも分かったから、初心者でもわかりやすいと思う。
+特にパスの&lt;code&gt;閉包テーブル&lt;/code&gt;とポリモーフィックの&lt;code&gt;単一テーブル継承(Single Table Inheritance、通称STI)&lt;/code&gt;にはお世話になりました。&lt;/p&gt;
+
+&lt;h2 id=&#34;外部キー制約の種類&#34;&gt;外部キー制約の種類&lt;/h2&gt;
+
+&lt;p&gt;外部キー制約は更新時(&lt;code&gt;UPDATE ON&lt;/code&gt;)と削除時(&lt;code&gt;DELETE ON&lt;/code&gt;)にそれぞれ設定できる。&lt;/p&gt;
+
+&lt;p&gt;外部キー制約は主に4種類。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;NO ACTION&lt;/li&gt;
+&lt;li&gt;RESTRICT&lt;/li&gt;
+&lt;li&gt;CASCADE&lt;/li&gt;
+&lt;li&gt;SET NULL&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;SET DEFAULTとかもあるけど、今回は割愛。&lt;code&gt;NO ACTION&lt;/code&gt;と&lt;code&gt;RESTRICT&lt;/code&gt;は同じ。&lt;/p&gt;
+
+&lt;h3 id=&#34;restrict-no-action&#34;&gt;RESTRICT (NO ACTION)&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/restrict.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;子が外部キーを持っていた場合、その親の操作をさせなくする。&lt;/p&gt;
+
+&lt;h3 id=&#34;cascade&#34;&gt;CASCADE&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/cascade.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;子が外部キーを持っていた場合、その親が更新や削除したら、子もそれに追従する。&lt;/p&gt;
+
+&lt;h3 id=&#34;set-null&#34;&gt;SET NULL&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/null.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;子が外部キーを持っていた場合、その親が更新や削除したら、子にnullを代入する。&lt;/p&gt;
+
+&lt;h3 id=&#34;railsではどうなの&#34;&gt;Railsではどうなの？&lt;/h3&gt;
+
+&lt;p&gt;RailsはActiveRecord経由で操作、つまりmodelに書く。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class User &amp;lt; ActiveRecord::Base
+  has_one :animes, :class_name =&amp;gt; &#39;Anime&#39;, :dependent =&amp;gt; :destroyend
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;基本的には、&lt;code&gt;:dependent =&amp;gt; 制約名&lt;/code&gt;を追加するだけでいい。&lt;/p&gt;
+
+&lt;p&gt;でもこれは&lt;strong&gt;ActiveRecord経由で操作するものだけにしか効果が無い&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;つまり&lt;code&gt;user1.destroy&lt;/code&gt;とかでは効いても&lt;code&gt;user1.delete&lt;/code&gt;では効かない。&lt;/p&gt;
+
+&lt;p&gt;RailsはDB自体には制約ができない。なのでそれに対応するgem(&lt;code&gt;foreigner&lt;/code&gt;)を入れる必要がある。&lt;/p&gt;
+
+&lt;h2 id=&#34;gemの導入&#34;&gt;Gemの導入&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;Gemfile&lt;/code&gt;に&lt;code&gt;foreigner&lt;/code&gt;を追加。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;gem &#39;foreigner&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;実際に例で作成してみる&#34;&gt;実際に例で作成してみる&lt;/h2&gt;
+
+&lt;p&gt;今回は次のようなテーブルの場合を考える。&lt;/p&gt;
+
+&lt;div&gt;&lt;img width=&#34;80%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/foreigner-pc.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;usersテーブルにユーザー名、filesテーブルにファイル名。この2つが親。&lt;/p&gt;
+
+&lt;p&gt;playsテーブルが、どのユーザーが何のファイルを再生したかをカウントする、というもの。これが子。&lt;/p&gt;
+
+&lt;p&gt;playのロー(行データ)はusersテーブルとfilesテーブルに依存している。&lt;/p&gt;
+
+&lt;p&gt;親のロー(行データ)が更新したら子も更新し、削除されたら子も削除する。&lt;/p&gt;
+
+&lt;p&gt;モデルの作成は以下のコマンド。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model user name:string
+$ rails g model file name:string
+$ rails g play count:integer file:references user:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;注意点は、&lt;strong&gt;一度テーブルを作成してから&lt;/strong&gt;でないと反映できない。なので別にmigrationファイルを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g migration AddForeignKeyToPlays
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;AddForeignKeyToPlays&lt;/code&gt;の部分は、&lt;code&gt;AddForeignKeyToテーブル名複数形&lt;/code&gt;になる。&lt;/p&gt;
+
+&lt;p&gt;実際に作成されたmigrationファイルに外部キー制約を記入していく。書き方は3通り。&lt;/p&gt;
+
+&lt;h3 id=&#34;1-繰り返しを使う&#34;&gt;1. 繰り返しを使う&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class AddForeignKeyToPlays &amp;lt; ActiveRecord::Migration
+  def change
+    change_table :plays do |t|
+      t.foreign_key :users, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;
+      t.foreign_key :files, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;1.の場合、
+&lt;code&gt;t.foreign_key :users, options:&lt;/code&gt;とあるが、&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;t.foreign_key :親のテーブル名複数形, options: &#39;付与するSQL制約&#39;&lt;/code&gt;のように書く。&lt;/p&gt;
+
+&lt;h3 id=&#34;2-メソッドを使う&#34;&gt;2. メソッドを使う&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class AddForeignKeyToPlays &amp;lt; ActiveRecord::Migration
+  def change
+    add_foreign_key(:plays, :users, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;)
+    add_foreign_key(:plays, :files, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;)
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;2.の場合、
+&lt;code&gt;add_foreign_key(:plays, :users, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;)&lt;/code&gt;とあるが、&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;add_foreign_key(:子のテーブル名複数形, :親のテーブル名複数形, options: &#39;付与するSQL制約&#39;)&lt;/code&gt;のように書く。&lt;/p&gt;
+
+&lt;h3 id=&#34;3-メソッド-括弧なし-を使う&#34;&gt;3. メソッド(括弧なし)を使う&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class AddForeignKeyToPlays &amp;lt; ActiveRecord::Migration
+  def change
+    add_foreign_key :plays, :users, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;
+    add_foreign_key :plays, :files, options: &#39;ON UPDATE CASCADE ON DELETE CASCADE&#39;
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;3.の場合は2の括弧を外しただけ。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;付与するSQL制約&lt;/code&gt;は、SQLによって効果が違う。
+postgresqlの場合だと、以下の表通り。&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;更新時(ON UPDATE)の効果&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;削除時(ON DELETE)の効果&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;NO ACTION&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;規定値。親が更新できない。&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;規定値。親が削除できない。&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;RESTRICT&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;NO ACTIONと同じだが、制約の検査を遅らせられない&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;NO ACTIONと同じだが、制約の検査を遅らせられない&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;CASCADE&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;親に合わせて子も更新&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;親に合わせて子も削除&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;SET NULL&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;null値を代入&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;null値を代入&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;SET DEFAULT&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;自分で決めた規定値にする&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;自分で決めた規定値にする&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;なので&lt;code&gt;ON UPDATE CASCADE ON DELETE CASCADE&lt;/code&gt;だと、更新時も終了時も親に合わせて更新、削除になる。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsで多対多のテーブルを実装する</title>
+      <link>https://b.pyar.bz/20141016/many-to-many-table</link>
+      <pubDate>Thu, 16 Oct 2014 22:59:33 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141016/many-to-many-table</guid>
+      <description>
+
+&lt;p&gt;railsでmodelを作成するとき、多対多の実装方法が分かりづらかったのでまとめてみた。
+railsでの多対多の書き方はいろいろあるらしい。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;#1&#34;&gt;中間テーブルを作成し、&lt;code&gt;has_many :through&lt;/code&gt;を使う&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#2&#34;&gt;&lt;code&gt;has_and_belongs_to_many&lt;/code&gt;を使う&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#3&#34;&gt;&lt;code&gt;create_join_table&lt;/code&gt;を使う&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;1 → 3の順に情報が多い気がする。手軽さ的には 3 → 1の順かな。&lt;/p&gt;
+
+&lt;p&gt;個人的には1がおすすめ。理由としては、&lt;strong&gt;中間テーブル名を用いてDBにアクセス出来る&lt;/strong&gt;ことと、&lt;strong&gt;中間テーブルに属性を後で付加できる&lt;/strong&gt;から。&lt;/p&gt;
+
+&lt;p&gt;例として&lt;strong&gt;画像にtagデータを持たせる&lt;/strong&gt;テーブルを考える。&lt;/p&gt;
+
+&lt;p&gt;Toxi法で多対多のテーブルを作成する。&lt;a href=&#34;http://b.pyar.bz/blog/2014/10/15/model/&#34;&gt;railsの規約&lt;/a&gt;に沿ってDB設計をした。ER図は以下の通り。&lt;/p&gt;
+
+&lt;h3 id=&#34;1の場合&#34;&gt;1の場合&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/model/many_many.png&#34;&gt;&lt;/div&gt;
+
+&lt;h3 id=&#34;2-3の場合&#34;&gt;2, 3の場合&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;80%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/model/many_many_no_.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code&gt;images&lt;/code&gt;テーブルには&lt;code&gt;name&lt;/code&gt;と&lt;code&gt;URL&lt;/code&gt;の情報を保存し、&lt;code&gt;tags&lt;/code&gt;テーブルには&lt;code&gt;name&lt;/code&gt;の情報を保存させる。&lt;code&gt;tag_id&lt;/code&gt;と&lt;code&gt;image_id&lt;/code&gt;は外部キー。&lt;/p&gt;
+
+&lt;p&gt;違いは中間テーブルの有無だけで、やってることは同じ。実際にはrailsが中間テーブルを自動生成してくれるので、2,3も1のようなテーブルになる。&lt;/p&gt;
+
+&lt;p&gt;ではER図を元にrailsで実装してみる。&lt;/p&gt;
+
+&lt;h2&gt;&lt;a name=&#34;1&#34; class=&#34;content-link&#34;&gt;1. 中間テーブルを作成し、&lt;code&gt;has_many :through&lt;/code&gt;を使った場合&lt;/a&gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;rails g model&lt;/code&gt;コマンドを用いて、テーブルを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model image name:string url:string
+$ rails g model tag name:string
+$ rails g model image_tag image:references tag:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;テーブル名が単数形であることに注意。railsではActive Record経由で自動的に複数形にしてくれる。&lt;/p&gt;
+
+&lt;p&gt;中間テーブルと関連付けさせる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Image &amp;lt; ActiveRecord::Base
+  has_many :image_tags
+  has_many :tags, :through =&amp;gt; :image_tags
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class Tag &amp;lt; ActiveRecord::Base
+  has_many :image_tags
+  has_many :images, :through =&amp;gt; :image_tags
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class ImageTag &amp;lt; ActiveRecord::Base
+  belongs_to :image
+  belongs_to :tag
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみにmigrateファイルは以下のようになっている。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImages &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images do |t|
+      t.string :name
+      t.string :url
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :tags do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImageTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :image_tags do |t|
+      t.references :image, index: true, null: false
+      t.references :tag, index: true, null: false
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;外部キーに&lt;code&gt;not null&lt;/code&gt;制約を付加している。&lt;/p&gt;
+
+&lt;p&gt;最後にマイグレートする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2&gt;&lt;a name=&#34;2&#34; class=&#34;content-link&#34;&gt;2. &lt;code&gt;has_and_belongs_to_many&lt;/code&gt;を使った場合&lt;/a&gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;rails g model&lt;/code&gt;コマンドを用いて、テーブルを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model image name:string url:string
+$ rails g model tag name:string
+$ rails g migration create_images_tags image:references tag:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;中間テーブルは作らない。migrationファイルで関連付けさせる。&lt;/p&gt;
+
+&lt;p&gt;テーブルを関連付けさせる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Image &amp;lt; ActiveRecord::Base
+  has_and_belongs_to_many :tags
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class Tag &amp;lt; ActiveRecord::Base
+  has_and_belongs_to_many :images
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;migrationファイルを編集する&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;元のファイル&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImagesTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images_tags do |t|
+      t.references :image, index: true
+      t.references :tag, index: true
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;これを&lt;code&gt;has_and_belongs_to_many&lt;/code&gt;の規約で編集する&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;h4 id=&#34;has-and-belongs-to-many-アソシエーションの規約&#34;&gt;has_and_belongs_to_many アソシエーションの規約&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;中間テーブルを作成しなければならない。&lt;/li&gt;
+&lt;li&gt;中間テーブルのテーブル名は参照先のテーブル名を辞書順に「_」で連結しなければならない。(※)&lt;/li&gt;
+&lt;li&gt;中間テーブルの主キー列を無効化しなくてはならない。&lt;/li&gt;
+&lt;li&gt;中間テーブルの外部キー列は「参照先のモデル名_id」の形式にしなければならない。&lt;/li&gt;
+&lt;li&gt;中間テーブルのタイムスタンプ列を削除しなくてはならない。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;code&gt;変更後&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImagesTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images_tags, id: false do |t|
+      t.references :image, index: true, null: false
+      t.references :tag, index: true, null: false
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;外部キーに&lt;code&gt;not null&lt;/code&gt;制約を付加している。&lt;/p&gt;
+
+&lt;p&gt;変更前に&lt;code&gt;id: false&lt;/code&gt;を追加しただけ。外部キー名を明記しないのは、自動生成してくれるため。&lt;/p&gt;
+
+&lt;p&gt;ちなみに他のmigrateファイルは以下のようになっている。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImages &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images do |t|
+      t.string :name
+      t.string :url
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :tags do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最後にマイグレートする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2&gt;&lt;a name=&#34;3&#34; class=&#34;content-link&#34;&gt;3. &lt;code&gt;create_join_table&lt;/code&gt;を使った場合&lt;/a&gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;rails g model&lt;/code&gt;コマンドを用いて、テーブルを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model image name:string url:string
+$ rails g model tag name:string
+$ rails g migration create_join_table_images_tags image tag
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;中間テーブルは作らない。migrationファイルで関連付けさせる。&lt;/p&gt;
+
+&lt;p&gt;テーブルを関連付けさせる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Image &amp;lt; ActiveRecord::Base
+  has_and_belongs_to_many :tags
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class Tag &amp;lt; ActiveRecord::Base
+  has_and_belongs_to_many :images
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;migrationファイルを編集する&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;元のファイル&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateJoinTableImagesTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_join_table :images, :tags do |t|
+      # t.index [:image_id, :tag_id]
+      # t.index [:tag_id, :image_id]
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;コメントアウトを外す。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;変更後&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateJoinTableImagesTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_join_table :images, :tags do |t|
+      t.index [:image_id, :tag_id]
+      t.index [:tag_id, :image_id]
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみに他のmigrateファイルは以下のようになっている。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImages &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images do |t|
+      t.string :name
+      t.string :url
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :tags do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最後にマイグレートする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsのmodelについて調べてみた</title>
+      <link>https://b.pyar.bz/20141016/model</link>
+      <pubDate>Thu, 16 Oct 2014 00:33:20 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141016/model</guid>
+      <description>
+
+&lt;p&gt;railsでmodelを操作するときは、以下のコマンドを使う。&lt;/p&gt;
+
+&lt;h4 id=&#34;作成&#34;&gt;作成&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model テーブル名 カラム名:型 カラム名:型 ・・・
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;削除&#34;&gt;削除&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails d model テーブル名 カラム名:型 カラム名:型 ・・・
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;作成はg、削除はd。&lt;/p&gt;
+
+&lt;p&gt;また、外部キーを追加する場合にはこうする。&lt;/p&gt;
+
+&lt;h4 id=&#34;作成-外部キー有&#34;&gt;作成(外部キー有)&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model テーブル名 カラム名:型 カラム名:型 外部キーのテーブル名:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;削除-外部キー有&#34;&gt;削除(外部キー有)&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails d model テーブル名 カラム名:型 カラム名:型 外部キーのテーブル名:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;既存のテーブルに外部キーを追加する場合は、上記のコマンドでは追加できない。その場合はmigrationを用いる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g migration テーブル名 外部キーのテーブル名:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみに、railsには以下の規約がある。なので上記のテーブル名は&lt;strong&gt;小文字&lt;/strong&gt;かつ&lt;strong&gt;単数形&lt;/strong&gt;である必要がある。&lt;/p&gt;
+
+&lt;h4 id=&#34;テーブル名とクラス名&#34;&gt;テーブル名とクラス名&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;テーブル名は複数形&lt;/li&gt;
+&lt;li&gt;単語の区切りはアンダーバー(_)&lt;/li&gt;
+&lt;li&gt;対応するクラス名は単語の先頭を大文字にして _ を取り除いたもの&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;キーのカラム名&#34;&gt;キーのカラム名&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;主キーのカラム名は「id」&lt;/li&gt;
+&lt;li&gt;外部キーのカラム名は「テーブル名の単数_id」&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;日付関連のカラム名&#34;&gt;日付関連のカラム名&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;DATE型のカラムには名前を 「受動態_on」&lt;/li&gt;
+&lt;li&gt;TIMESTAMP型のカラムには名前を「受動態_at」&lt;/li&gt;
+&lt;li&gt;更新日時、作成日時は「updated_at」、「created_at」&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;結合テーブル&#34;&gt;結合テーブル&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;関連させたいテーブル名をくっつけた名前にする&lt;/li&gt;
+&lt;li&gt;カラム「id」を作らずに、関連させる2つのキーのセットを主キーにする&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;参考: &lt;a href=&#34;http://railsdoc.com/rails_base&#34;&gt;Railsドキュメント&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;型一覧&#34;&gt;型一覧&lt;/h3&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;rails g model&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;sqlite&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;mysql&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;postgresql&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;ruby&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:binary&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;bolb&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;bolb&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;bytea&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;String&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:boolean&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;boolean&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;tinyint(1)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;boolean&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;TrueClass/FalseClass&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:date&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;date&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;date&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;date&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Date&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:datetime&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;timestamp&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Time&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:decimal&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;decimal&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;decimal&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;decimal&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;BigDecimal&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:float&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;float&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;float&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;float&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Float&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:integer&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;integer&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;int(11)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;integer&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Fixnum&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:string&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;varchar(255)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;varchar(255)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;character varying(256)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;String&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:text&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;test&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;text&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;text&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;String&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:time&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;time&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;time&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Time&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:timestamp&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;timestamp&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Time&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;ちなみに主キーは自動的に作成されるので、&lt;code&gt;rails g id:primary_key&lt;/code&gt;とかで作る必要はない。&lt;/p&gt;
+
+&lt;p&gt;あとは以下のコマンドで反映させればOK&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;DBを反映前の状態に戻したい場合は以下のコマンドを使う。&lt;/p&gt;
+
+&lt;h4 id=&#34;dbを1つ前に戻す&#34;&gt;DBを1つ前に戻す&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:rollback
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;dbを最初に戻す&#34;&gt;DBを最初に戻す&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate VERSION=0
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsでよく出てくる、似たようなものを調べてみた。</title>
+      <link>https://b.pyar.bz/20141016/same-rails</link>
+      <pubDate>Thu, 16 Oct 2014 00:08:13 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141016/same-rails</guid>
+      <description>
+
+&lt;p&gt;railsで調べていると、よく似たものが出てくる。わかりづらいのでメモ。&lt;/p&gt;
+
+&lt;h3 id=&#34;html&#34;&gt;HTML&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;erb
+
+&lt;ul&gt;
+&lt;li&gt;デフォルトのやつ。&lt;/li&gt;
+&lt;li&gt;基本はhtmlそのもの。&lt;/li&gt;
+&lt;li&gt;ruby埋め込みは&lt;code&gt;&amp;lt;%= %&amp;gt;&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;haml(yaml)
+
+&lt;ul&gt;
+&lt;li&gt;ちょっとふるいやつ。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;&amp;lt;&amp;gt;&lt;/code&gt;の代わりに&lt;code&gt;%&lt;/code&gt;を用いる&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;slim
+
+&lt;ul&gt;
+&lt;li&gt;新しいやつ。&lt;/li&gt;
+&lt;li&gt;cssやjqueryと記法が似ている。&lt;/li&gt;
+&lt;li&gt;classは&lt;code&gt;.&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;idは&lt;code&gt;#&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;ruby埋め込みは&lt;code&gt;=&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;gem &#39;slim-rails&#39;&lt;/code&gt;でインストール&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;javascript&#34;&gt;javascript&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;coffee scrpit&lt;/li&gt;
+&lt;li&gt;type script&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;css&#34;&gt;CSS&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;scss
+
+&lt;ul&gt;
+&lt;li&gt;コンパイラはruby。デフォルト。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;sass
+
+&lt;ul&gt;
+&lt;li&gt;デフォルトで使えるが、拡張子を&lt;code&gt;.sass&lt;/code&gt;変更する。&lt;/li&gt;
+&lt;li&gt;scssから&lt;code&gt;{}&lt;/code&gt;が取れた感じ。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;less
+
+&lt;ul&gt;
+&lt;li&gt;コンパイラはjavascript。&lt;/li&gt;
+&lt;li&gt;gemに&lt;code&gt;rubyracer&lt;/code&gt;が必要&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;gem&#34;&gt;gem&lt;/h3&gt;
+
+&lt;h4 id=&#34;処理の高速化&#34;&gt;処理の高速化&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/rails/spring&#34;&gt;spring&lt;/a&gt; rails4のデフォ。最近はこれ。
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/jonleighton/spring-commands-rspec&#34;&gt;spring-commands-rspec&lt;/a&gt; springにrspecを対応させる。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;zeus 古いやつ&lt;/li&gt;
+&lt;li&gt;spork 古いやつ&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;変更の監視&#34;&gt;変更の監視&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/guard/guard&#34;&gt;guard&lt;/a&gt; 画面をリロードさせたりrspecを走らせたり
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/guard/guard-livereload&#34;&gt;guard-livereload&lt;/a&gt; ブラウザをリロード&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/guard/guard-rspec&#34;&gt;guard-rspec&lt;/a&gt; テストを自動で走らせる&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/mknapik/guard-spring&#34;&gt;guard-spring&lt;/a&gt; springを呼び出す&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;デバッグ&#34;&gt;デバッグ&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/rweng/pry-rails&#34;&gt;pry-rails&lt;/a&gt; irbの強化版ipythonみたいなもん。rails consoleでも動作する。
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/deivid-rodriguez/pry-byebug&#34;&gt;pry-byebug&lt;/a&gt; pry中にデバッグできる。ブレイクポイントを設置したり。ruby2ではこっち&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/nixme/pry-debugger&#34;&gt;pry-debugger&lt;/a&gt; pry中にデバッグできる。ブレイクポイントを設置したり。ruby2では動作しない&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;tdd&#34;&gt;TDD&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/rspec/rspec-rails&#34;&gt;rspec-rails&lt;/a&gt; 言わずもがなrspec本体&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/thoughtbot/factory_girl_rails&#34;&gt;factory_girl_rails&lt;/a&gt; テストDBにデータを用意できる。主にmodel側のテスト。&lt;/li&gt;
+&lt;li&gt;fixture →factory_girlと同じ。factory_girlのほうが上&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/jnicklas/capybara&#34;&gt;capybara&lt;/a&gt; 操作やフォーム入力などをエミュレートしてくれる。主にview側のテスト。APIには向かない。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;binstub&#34;&gt;binstub&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;railsアプリ/binに実行ファイルを置いてくれる。&lt;code&gt;bundle install --binstubs path&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsのよく使うコマンドをまとめてみた</title>
+      <link>https://b.pyar.bz/20141015/rails-command</link>
+      <pubDate>Wed, 15 Oct 2014 23:47:39 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141015/rails-command</guid>
+      <description>
+
+&lt;p&gt;Scaffoldは使わない気がする。大体使うのcontrollerとmodelだなぁ。&lt;/p&gt;
+
+&lt;h3 id=&#34;controller&#34;&gt;Controller&lt;/h3&gt;
+
+&lt;p&gt;作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g controller コントローラ名 メソッド名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;削除&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails d controller コントローラ名 メソッド名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;model&#34;&gt;Model&lt;/h3&gt;
+
+&lt;p&gt;作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g model モデル名 カラム名1:型 カラム名2:型 ・・・・
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;削除&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails d model モデル名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;migration&#34;&gt;Migration&lt;/h3&gt;
+
+&lt;p&gt;DBの適用&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;DBを1つ前に戻す&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rake db:rollback
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;DBを最初に戻す&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rake db:migrate VERSION=0
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;test-rspec時&#34;&gt;Test(rspec時)&lt;/h3&gt;
+
+&lt;p&gt;modelテスト作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g rspec:model テスト名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;controllerテスト作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g rspec:controller テスト名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;viewテスト作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g rspec:view テスト名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;コマンド一覧&#34;&gt;コマンド一覧&lt;/h2&gt;
+
+&lt;p&gt;参考: &lt;a href=&#34;http://d.hatena.ne.jp/maeharin/20130212/rails_generate&#34;&gt;maeharinの日記&lt;/a&gt;&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;center&#34;&gt;コマンド名&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;コントローラ&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;ビュー&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;モデル&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;マイグレーション&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;アセット&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;ルート&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;テスト&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;ヘルパー&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;scaffold&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;scaffold_controller&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;controller&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;model&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;migration&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>NewRelicでHerokuアプリをスリープさせなくする</title>
+      <link>https://b.pyar.bz/20141015/newrelic-config</link>
+      <pubDate>Wed, 15 Oct 2014 23:31:02 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141015/newrelic-config</guid>
+      <description>&lt;p&gt;ライセンスキーを取得しておく&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://rpm.newrelic.com/applications/setup&#34;&gt;https://rpm.newrelic.com/applications/setup&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;環境変数を読み込むよう変更する&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ heroku addons:add newrelic:stark
+$ heroku config:set NEW_RELIC_APP_NAME=heroku上でのアプリ名
+$ heroku config:set NEW_RELIC_LICENSE_KEY=NewRelicのライセンスキー
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;/config/newrelic.yml&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;common: &amp;amp;default_settings
+  license_key: &amp;lt;%= ENV[&amp;quot;NEW_RELIC_LICENSE_KEY&amp;quot;] %&amp;gt;
+  app_name: &amp;lt;%= ENV[&amp;quot;NEW_RELIC_APP_NAME&amp;quot;] %&amp;gt;
+development:
+  &amp;lt;&amp;lt;: *default_settings
+  monitor_mode: true
+  app_name: &amp;lt;%= ENV[&amp;quot;NEW_RELIC_APP_NAME&amp;quot;] %&amp;gt; (Development)
+staging:
+  &amp;lt;&amp;lt;: *default_settings
+  monitor_mode: true
+  app_name: &amp;lt;%= ENV[&amp;quot;NEW_RELIC_APP_NAME&amp;quot;] %&amp;gt; (Staging)
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;URLにアクセスして、Pingを飛ばすようにする&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;newRelicのURL/アプリ名/ping_targets&lt;/code&gt;にアクセス&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;URL to monitor&lt;/code&gt;にherokuの起動URLを入力&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>travisとherokuを連携させて自動デプロイ</title>
+      <link>https://b.pyar.bz/20141015/travis-config</link>
+      <pubDate>Wed, 15 Oct 2014 23:23:10 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141015/travis-config</guid>
+      <description>&lt;p&gt;Railsを&lt;code&gt;github&lt;/code&gt;→&lt;code&gt;travis&lt;/code&gt;→&lt;code&gt;heroku&lt;/code&gt;と自動デプロイできるようにする。&lt;/p&gt;
+
+&lt;p&gt;githubから取得できるようにしておく。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://travis-ci.org/profile&#34;&gt;https://travis-ci.org/profile&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Travis用のTokenを生成する&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ heroku auth:token
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Travis用のTokenを生成したので、travis.ymlに以下のコマンドで書き込む&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ travis setup heroku
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Travisに環境変数を設定する&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ travis login --org
+$ travis env set DB_HOST ホスト名
+$ travis env set DB_DATABASE データベース名
+$ travis env set DB_PASSWORD パスワード
+$ travis env set DB_USERNAME ユーザー名
+$ travis env set DB_HOST ホスト名
+$ travis env list
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Railsで環境変数を読み込ませる&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;/config/database.yml&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;test:
+  adapter: postgresql
+  encoding: utf8
+  port: 5432
+  host: &amp;lt;%= ENV[&#39;DB_HOST&#39;] %&amp;gt;
+  database: &amp;lt;%= ENV[&#39;DB_DATABASE&#39;] %&amp;gt;
+  pool: 5
+  username: &amp;lt;%= ENV[&#39;DB_USERNAME&#39;] %&amp;gt;
+  password: &amp;lt;%= ENV[&#39;DB_PASSWORD&#39;] %&amp;gt;
+  timeout: 5000
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>herokuの環境変数を設定してrailsからDBにアクセスする</title>
+      <link>https://b.pyar.bz/20141015/heroku-config</link>
+      <pubDate>Wed, 15 Oct 2014 23:15:31 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141015/heroku-config</guid>
+      <description>&lt;p&gt;herokuのデプロイ時にDB関係でよくエラーになるのでメモ。&lt;/p&gt;
+
+&lt;p&gt;Heroku Toolbeltをインストールする&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://toolbelt.heroku.com/&#34;&gt;heroku Toolbelt&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;アプリケーションの作成をする&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://dashboard-next.heroku.com/new&#34;&gt;https://dashboard-next.heroku.com/new&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;view画面を作成しないとエラーが出るので、以下のコマンドでview画面を作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g controller Top index
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ルーティング先をTopControllerにする&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;config/routes.rb&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Rails.application.routes.draw do
+  # get &#39;top/index&#39;
+  root &#39;top#index&#39;
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;環境変数を読み込むよう変更する&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;/config/database.yml&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;production:
+  adapter: postgresql
+  encoding: utf8
+  port: 5432
+  host: &amp;lt;%= ENV[&#39;DB_HOST&#39;] %&amp;gt;
+  database: &amp;lt;%= ENV[&#39;DB_DATABASE&#39;] %&amp;gt;
+  pool: 5
+  username: &amp;lt;%= ENV[&#39;DB_USERNAME&#39;] %&amp;gt;
+  password: &amp;lt;%= ENV[&#39;DB_PASSWORD&#39;] %&amp;gt;
+  timeout: 5000
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;/config/secrets.yml&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;production:
+  secret_key_base: &amp;lt;%= ENV[&amp;quot;SECRET_KEY_BASE&amp;quot;] %&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;$ git remote add heroku git@heroku.com:アプリ名.git
+$ heroku login
+$ heroku config
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;以下のように出てくる。5432はport番号。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;postgres://ユーザー名:パスワード@ホスト名:5432/データベース名&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;以下のコマンドを入力して環境変数を設定&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ heroku config:set DB_HOST=ホスト名
+$ heroku config:set DB_DATABASE=データベース名
+$ heroku config:set DB_PASSWORD=パスワード
+$ heroku config:set DB_USERNAME=ユーザー名
+$ heroku config:set LANG=ja_JP.UTF-8
+$ heroku config:set TZ=Asia/Tokyo
+$ heroku config:set SECRET_KEY_BASE=secrets.ymlに書いてあった文字列
+$ heroku config:set RACK_ENV=production
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsのルーティングはmatchを使って書くべき</title>
+      <link>https://b.pyar.bz/20141015/routing</link>
+      <pubDate>Wed, 15 Oct 2014 23:04:14 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141015/routing</guid>
+      <description>&lt;p&gt;railsのrootingにおいて、getやpostで書き始めるのではなく、matchで書き始めるのが慣例らしい。&lt;/p&gt;
+
+&lt;p&gt;例として、以下のルーティングがあるとする。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;get &#39;help/&#39; =&amp;gt; &#39;testpage#help&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;これを次の様に書き直す、がおすすめしない。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;match &#39;/help&#39;, :to =&amp;gt; &#39;testpage#help&#39;, :via =&amp;gt; :get
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;実際には次のように書く。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;match &#39;/help&#39;, to: &#39;testpage#help&#39;, via: &#39;get&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ハッシュ&lt;code&gt;=&amp;gt;&lt;/code&gt;とシンボル&lt;code&gt;:&lt;/code&gt;だと後者が新しい。&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

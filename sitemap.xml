@@ -1,0 +1,728 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>https://b.pyar.bz/20170608/api-uri</loc>
+    <lastmod>2017-06-08T00:11:52-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20170324/ipv6</loc>
+    <lastmod>2017-03-24T00:19:00-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20160628/redis-keys</loc>
+    <lastmod>2016-06-28T00:03:53-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20141027/rails-timezone</loc>
+    <lastmod>2014-10-27T18:38:11-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20141023/has-one</loc>
+    <lastmod>2014-10-23T17:01:54-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20141021/mac-postgresql-installation</loc>
+    <lastmod>2014-10-21T20:20:23-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20141021/migrate-command</loc>
+    <lastmod>2014-10-21T20:16:03-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20141021/rake-db-migrate</loc>
+    <lastmod>2014-10-21T17:14:06-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20141021/foreigner</loc>
+    <lastmod>2014-10-21T05:31:16-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20141016/many-to-many-table</loc>
+    <lastmod>2014-10-16T22:59:33-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20141016/model</loc>
+    <lastmod>2014-10-16T00:33:20-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20141016/same-rails</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20141016/vagrant-command</loc>
+    <lastmod>2014-10-16T00:00:28-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20141015/rails-command</loc>
+    <lastmod>2014-10-15T23:47:39-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20141015/newrelic-config</loc>
+    <lastmod>2014-10-15T23:31:02-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20141015/travis-config</loc>
+    <lastmod>2014-10-15T23:23:10-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20141015/heroku-config</loc>
+    <lastmod>2014-10-15T23:15:31-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20141015/routing</loc>
+    <lastmod>2014-10-15T23:04:14-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20141015/intellij</loc>
+    <lastmod>2014-10-15T22:51:55-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20140122/github-flow</loc>
+    <lastmod>2014-01-22T16:48:31-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20140122/rails-global-ref</loc>
+    <lastmod>2014-01-22T16:46:56-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/20140122/rails-json-parse</loc>
+    <lastmod>2014-01-22T16:45:10-09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/about/</loc>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/api/</loc>
+    <lastmod>2017-06-08T00:11:52-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/basic/</loc>
+    <lastmod>2014-01-22T16:45:10-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/binstubs/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/capybara/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/categories/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/coffee/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/command/</loc>
+    <lastmod>2014-10-16T00:00:28-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/config/</loc>
+    <lastmod>2014-10-15T22:51:55-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/controller/</loc>
+    <lastmod>2014-10-15T23:47:39-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/datetime/</loc>
+    <lastmod>2014-10-27T18:38:11-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/db/</loc>
+    <lastmod>2014-10-16T00:33:20-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/erb/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/er%E5%9B%B3/</loc>
+    <lastmod>2014-10-16T22:59:33-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/factory_girl/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/foreigner/</loc>
+    <lastmod>2014-10-21T05:31:16-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/gem/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/get/</loc>
+    <lastmod>2014-10-15T23:04:14-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/git/</loc>
+    <lastmod>2014-01-22T16:48:31-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/github/</loc>
+    <lastmod>2014-10-15T23:23:10-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/github-flow/</loc>
+    <lastmod>2014-01-22T16:48:31-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/guard/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/haml/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/has_one/</loc>
+    <lastmod>2014-10-23T17:01:54-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/heroku/</loc>
+    <lastmod>2014-10-15T23:31:02-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/intellij/</loc>
+    <lastmod>2014-10-15T22:51:55-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/ip/</loc>
+    <lastmod>2017-03-24T00:19:00-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/ipoe/</loc>
+    <lastmod>2017-03-24T00:19:00-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/ipv4/</loc>
+    <lastmod>2017-03-24T00:19:00-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/ipv6/</loc>
+    <lastmod>2017-03-24T00:19:00-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/isp/</loc>
+    <lastmod>2017-03-24T00:19:00-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/java/</loc>
+    <lastmod>2014-10-15T22:51:55-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/java8/</loc>
+    <lastmod>2014-10-15T22:51:55-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/jbuilder/</loc>
+    <lastmod>2014-01-22T16:45:10-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/json/</loc>
+    <lastmod>2014-01-22T16:45:10-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/jst/</loc>
+    <lastmod>2014-10-27T18:38:11-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/kvs/</loc>
+    <lastmod>2016-06-28T00:03:53-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/less/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/mac/</loc>
+    <lastmod>2014-10-21T20:20:23-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/match/</loc>
+    <lastmod>2014-10-15T23:04:14-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/migrate/</loc>
+    <lastmod>2014-10-21T20:16:03-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/model/</loc>
+    <lastmod>2014-10-23T17:01:54-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/network/</loc>
+    <lastmod>2017-03-24T00:19:00-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/newrelic/</loc>
+    <lastmod>2014-10-15T23:31:02-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/nosql/</loc>
+    <lastmod>2016-06-28T00:03:53-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/oreilly/</loc>
+    <lastmod>2014-10-21T05:31:16-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/parse/</loc>
+    <lastmod>2014-01-22T16:45:10-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/ping/</loc>
+    <lastmod>2014-10-15T23:31:02-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/postgres/</loc>
+    <lastmod>2014-10-21T20:20:23-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/postgresql/</loc>
+    <lastmod>2014-10-21T20:20:23-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/post/</loc>
+    <lastmod>2017-06-08T00:11:52-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/production/</loc>
+    <lastmod>2014-10-21T17:14:06-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/categories/programming/</loc>
+    <lastmod>2017-06-08T00:11:52-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/pry/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/public/</loc>
+    <lastmod>2014-01-22T16:46:56-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/rails/</loc>
+    <lastmod>2017-06-08T00:11:52-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/rails4/</loc>
+    <lastmod>2014-10-27T18:38:11-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/rake/</loc>
+    <lastmod>2014-10-21T20:16:03-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/redis/</loc>
+    <lastmod>2016-06-28T00:03:53-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/routing/</loc>
+    <lastmod>2014-10-15T23:04:14-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/rspec/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/ruby/</loc>
+    <lastmod>2014-10-27T18:38:11-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/sass/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/scaffold/</loc>
+    <lastmod>2014-10-15T23:47:39-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/scss/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/slim/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/speedtest/</loc>
+    <lastmod>2017-03-24T00:19:00-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/spring/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/table/</loc>
+    <lastmod>2014-10-16T22:59:33-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/test/</loc>
+    <lastmod>2014-10-21T17:14:06-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/timestamp/</loc>
+    <lastmod>2014-10-27T18:38:11-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/timezone/</loc>
+    <lastmod>2014-10-27T18:38:11-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/travis/</loc>
+    <lastmod>2014-10-15T23:23:10-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/type/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/uri/</loc>
+    <lastmod>2017-06-08T00:11:52-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/url/</loc>
+    <lastmod>2017-06-08T00:11:52-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/utc/</loc>
+    <lastmod>2014-10-27T18:38:11-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/vagrant/</loc>
+    <lastmod>2014-10-16T00:00:28-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/vne/</loc>
+    <lastmod>2017-03-24T00:19:00-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/yaml/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/</loc>
+    <lastmod>2017-06-08T00:11:52-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E3%82%AA%E3%83%A9%E3%82%A4%E3%83%AA%E3%83%BC/</loc>
+    <lastmod>2014-10-21T05:31:16-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E3%82%B0%E3%83%AD%E3%83%BC%E3%83%90%E3%83%AB%E5%8F%82%E7%85%A7/</loc>
+    <lastmod>2014-01-22T16:46:56-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/</loc>
+    <lastmod>2014-10-16T00:00:28-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E3%82%B9%E3%83%AA%E3%83%BC%E3%83%97/</loc>
+    <lastmod>2014-10-15T23:31:02-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E3%83%81%E3%83%BC%E3%83%A0/</loc>
+    <lastmod>2014-01-22T16:48:31-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E3%83%86%E3%83%BC%E3%83%96%E3%83%AB/</loc>
+    <lastmod>2014-10-16T22:59:33-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E3%83%87%E3%83%97%E3%83%AD%E3%82%A4/</loc>
+    <lastmod>2014-10-15T23:23:10-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/categories/%E3%83%8D%E3%83%83%E3%83%88%E3%83%AF%E3%83%BC%E3%82%AF/</loc>
+    <lastmod>2017-03-24T00:19:00-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E3%83%91%E3%83%BC%E3%82%B9/</loc>
+    <lastmod>2014-01-22T16:45:10-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/categories/%E3%83%97%E3%83%AD%E3%82%B0%E3%83%A9%E3%83%9F%E3%83%B3%E3%82%B0/</loc>
+    <lastmod>2016-06-28T00:03:53-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E3%83%A1%E3%83%A2/</loc>
+    <lastmod>2014-10-16T00:08:13-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E3%83%AB%E3%83%BC%E3%83%86%E3%82%A3%E3%83%B3%E3%82%B0/</loc>
+    <lastmod>2014-10-15T23:04:14-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E5%9B%B3%E8%A7%A3/</loc>
+    <lastmod>2014-10-21T05:31:16-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E5%A4%96%E9%83%A8%E3%82%AD%E3%83%BC/</loc>
+    <lastmod>2014-10-21T05:31:16-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E5%A4%96%E9%83%A8%E3%82%AD%E3%83%BC%E5%88%B6%E7%B4%84/</loc>
+    <lastmod>2014-10-21T05:31:16-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E5%A4%96%E9%83%A8%E3%82%AD%E3%83%BC%E5%AB%8C%E3%81%84/</loc>
+    <lastmod>2014-10-21T05:31:16-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E5%A4%9A%E5%AF%BE%E5%A4%9A/</loc>
+    <lastmod>2014-10-16T22:59:33-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E6%99%82%E9%96%93/</loc>
+    <lastmod>2014-10-27T18:38:11-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/tags/%E7%92%B0%E5%A2%83%E5%A4%89%E6%95%B0/</loc>
+    <lastmod>2014-10-15T23:31:02-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/categories/%E7%92%B0%E5%A2%83%E6%A7%8B%E7%AF%89/</loc>
+    <lastmod>2014-10-21T20:20:23-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://b.pyar.bz/categories/%E9%96%8B%E7%99%BA%E6%89%8B%E6%B3%95/</loc>
+    <lastmod>2014-01-22T16:48:31-09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+</urlset>

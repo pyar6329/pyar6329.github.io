@@ -1,0 +1,702 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Migrate on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/migrate/index.xml</link>
+    <description>Recent content in Migrate on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/migrate/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>migrateコマンドを省略する</title>
+      <link>https://b.pyar.bz/20141021/migrate-command</link>
+      <pubDate>Tue, 21 Oct 2014 20:16:03 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141021/migrate-command</guid>
+      <description>&lt;p&gt;railsでDBに反映するにはmigrateするが、リセットして一からやり直したいことがある。
+その時は普通以下のコマンドを入力する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:drop
+$ rake db:create
+$ rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ただし3回も打つのは面倒臭い。なので一行で打つとこうなる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:drop db:create db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;さらにこれはもっと省略できて、以下のコマンドで実現できる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate:reset
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsで動作モードを変更する</title>
+      <link>https://b.pyar.bz/20141021/rake-db-migrate</link>
+      <pubDate>Tue, 21 Oct 2014 17:14:06 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141021/rake-db-migrate</guid>
+      <description>&lt;p&gt;テストモードで動かす&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails s -e test
+$ rake db:migrate Rails_ENV=test
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;実行環境モードで動かす&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails s -e production
+$ rake db:migrate Rails_ENV=production
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsで多対多のテーブルを実装する</title>
+      <link>https://b.pyar.bz/20141016/many-to-many-table</link>
+      <pubDate>Thu, 16 Oct 2014 22:59:33 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141016/many-to-many-table</guid>
+      <description>
+
+&lt;p&gt;railsでmodelを作成するとき、多対多の実装方法が分かりづらかったのでまとめてみた。
+railsでの多対多の書き方はいろいろあるらしい。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;#1&#34;&gt;中間テーブルを作成し、&lt;code&gt;has_many :through&lt;/code&gt;を使う&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#2&#34;&gt;&lt;code&gt;has_and_belongs_to_many&lt;/code&gt;を使う&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#3&#34;&gt;&lt;code&gt;create_join_table&lt;/code&gt;を使う&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;1 → 3の順に情報が多い気がする。手軽さ的には 3 → 1の順かな。&lt;/p&gt;
+
+&lt;p&gt;個人的には1がおすすめ。理由としては、&lt;strong&gt;中間テーブル名を用いてDBにアクセス出来る&lt;/strong&gt;ことと、&lt;strong&gt;中間テーブルに属性を後で付加できる&lt;/strong&gt;から。&lt;/p&gt;
+
+&lt;p&gt;例として&lt;strong&gt;画像にtagデータを持たせる&lt;/strong&gt;テーブルを考える。&lt;/p&gt;
+
+&lt;p&gt;Toxi法で多対多のテーブルを作成する。&lt;a href=&#34;http://b.pyar.bz/blog/2014/10/15/model/&#34;&gt;railsの規約&lt;/a&gt;に沿ってDB設計をした。ER図は以下の通り。&lt;/p&gt;
+
+&lt;h3 id=&#34;1の場合&#34;&gt;1の場合&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/model/many_many.png&#34;&gt;&lt;/div&gt;
+
+&lt;h3 id=&#34;2-3の場合&#34;&gt;2, 3の場合&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;80%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/model/many_many_no_.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code&gt;images&lt;/code&gt;テーブルには&lt;code&gt;name&lt;/code&gt;と&lt;code&gt;URL&lt;/code&gt;の情報を保存し、&lt;code&gt;tags&lt;/code&gt;テーブルには&lt;code&gt;name&lt;/code&gt;の情報を保存させる。&lt;code&gt;tag_id&lt;/code&gt;と&lt;code&gt;image_id&lt;/code&gt;は外部キー。&lt;/p&gt;
+
+&lt;p&gt;違いは中間テーブルの有無だけで、やってることは同じ。実際にはrailsが中間テーブルを自動生成してくれるので、2,3も1のようなテーブルになる。&lt;/p&gt;
+
+&lt;p&gt;ではER図を元にrailsで実装してみる。&lt;/p&gt;
+
+&lt;h2&gt;&lt;a name=&#34;1&#34; class=&#34;content-link&#34;&gt;1. 中間テーブルを作成し、&lt;code&gt;has_many :through&lt;/code&gt;を使った場合&lt;/a&gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;rails g model&lt;/code&gt;コマンドを用いて、テーブルを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model image name:string url:string
+$ rails g model tag name:string
+$ rails g model image_tag image:references tag:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;テーブル名が単数形であることに注意。railsではActive Record経由で自動的に複数形にしてくれる。&lt;/p&gt;
+
+&lt;p&gt;中間テーブルと関連付けさせる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Image &amp;lt; ActiveRecord::Base
+  has_many :image_tags
+  has_many :tags, :through =&amp;gt; :image_tags
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class Tag &amp;lt; ActiveRecord::Base
+  has_many :image_tags
+  has_many :images, :through =&amp;gt; :image_tags
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class ImageTag &amp;lt; ActiveRecord::Base
+  belongs_to :image
+  belongs_to :tag
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみにmigrateファイルは以下のようになっている。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImages &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images do |t|
+      t.string :name
+      t.string :url
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :tags do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImageTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :image_tags do |t|
+      t.references :image, index: true, null: false
+      t.references :tag, index: true, null: false
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;外部キーに&lt;code&gt;not null&lt;/code&gt;制約を付加している。&lt;/p&gt;
+
+&lt;p&gt;最後にマイグレートする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2&gt;&lt;a name=&#34;2&#34; class=&#34;content-link&#34;&gt;2. &lt;code&gt;has_and_belongs_to_many&lt;/code&gt;を使った場合&lt;/a&gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;rails g model&lt;/code&gt;コマンドを用いて、テーブルを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model image name:string url:string
+$ rails g model tag name:string
+$ rails g migration create_images_tags image:references tag:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;中間テーブルは作らない。migrationファイルで関連付けさせる。&lt;/p&gt;
+
+&lt;p&gt;テーブルを関連付けさせる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Image &amp;lt; ActiveRecord::Base
+  has_and_belongs_to_many :tags
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class Tag &amp;lt; ActiveRecord::Base
+  has_and_belongs_to_many :images
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;migrationファイルを編集する&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;元のファイル&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImagesTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images_tags do |t|
+      t.references :image, index: true
+      t.references :tag, index: true
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;これを&lt;code&gt;has_and_belongs_to_many&lt;/code&gt;の規約で編集する&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;h4 id=&#34;has-and-belongs-to-many-アソシエーションの規約&#34;&gt;has_and_belongs_to_many アソシエーションの規約&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;中間テーブルを作成しなければならない。&lt;/li&gt;
+&lt;li&gt;中間テーブルのテーブル名は参照先のテーブル名を辞書順に「_」で連結しなければならない。(※)&lt;/li&gt;
+&lt;li&gt;中間テーブルの主キー列を無効化しなくてはならない。&lt;/li&gt;
+&lt;li&gt;中間テーブルの外部キー列は「参照先のモデル名_id」の形式にしなければならない。&lt;/li&gt;
+&lt;li&gt;中間テーブルのタイムスタンプ列を削除しなくてはならない。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;code&gt;変更後&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImagesTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images_tags, id: false do |t|
+      t.references :image, index: true, null: false
+      t.references :tag, index: true, null: false
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;外部キーに&lt;code&gt;not null&lt;/code&gt;制約を付加している。&lt;/p&gt;
+
+&lt;p&gt;変更前に&lt;code&gt;id: false&lt;/code&gt;を追加しただけ。外部キー名を明記しないのは、自動生成してくれるため。&lt;/p&gt;
+
+&lt;p&gt;ちなみに他のmigrateファイルは以下のようになっている。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImages &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images do |t|
+      t.string :name
+      t.string :url
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :tags do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最後にマイグレートする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2&gt;&lt;a name=&#34;3&#34; class=&#34;content-link&#34;&gt;3. &lt;code&gt;create_join_table&lt;/code&gt;を使った場合&lt;/a&gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;rails g model&lt;/code&gt;コマンドを用いて、テーブルを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model image name:string url:string
+$ rails g model tag name:string
+$ rails g migration create_join_table_images_tags image tag
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;中間テーブルは作らない。migrationファイルで関連付けさせる。&lt;/p&gt;
+
+&lt;p&gt;テーブルを関連付けさせる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Image &amp;lt; ActiveRecord::Base
+  has_and_belongs_to_many :tags
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class Tag &amp;lt; ActiveRecord::Base
+  has_and_belongs_to_many :images
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;migrationファイルを編集する&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;元のファイル&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateJoinTableImagesTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_join_table :images, :tags do |t|
+      # t.index [:image_id, :tag_id]
+      # t.index [:tag_id, :image_id]
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;コメントアウトを外す。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;変更後&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateJoinTableImagesTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_join_table :images, :tags do |t|
+      t.index [:image_id, :tag_id]
+      t.index [:tag_id, :image_id]
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみに他のmigrateファイルは以下のようになっている。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImages &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images do |t|
+      t.string :name
+      t.string :url
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :tags do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最後にマイグレートする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsのmodelについて調べてみた</title>
+      <link>https://b.pyar.bz/20141016/model</link>
+      <pubDate>Thu, 16 Oct 2014 00:33:20 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141016/model</guid>
+      <description>
+
+&lt;p&gt;railsでmodelを操作するときは、以下のコマンドを使う。&lt;/p&gt;
+
+&lt;h4 id=&#34;作成&#34;&gt;作成&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model テーブル名 カラム名:型 カラム名:型 ・・・
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;削除&#34;&gt;削除&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails d model テーブル名 カラム名:型 カラム名:型 ・・・
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;作成はg、削除はd。&lt;/p&gt;
+
+&lt;p&gt;また、外部キーを追加する場合にはこうする。&lt;/p&gt;
+
+&lt;h4 id=&#34;作成-外部キー有&#34;&gt;作成(外部キー有)&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model テーブル名 カラム名:型 カラム名:型 外部キーのテーブル名:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;削除-外部キー有&#34;&gt;削除(外部キー有)&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails d model テーブル名 カラム名:型 カラム名:型 外部キーのテーブル名:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;既存のテーブルに外部キーを追加する場合は、上記のコマンドでは追加できない。その場合はmigrationを用いる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g migration テーブル名 外部キーのテーブル名:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみに、railsには以下の規約がある。なので上記のテーブル名は&lt;strong&gt;小文字&lt;/strong&gt;かつ&lt;strong&gt;単数形&lt;/strong&gt;である必要がある。&lt;/p&gt;
+
+&lt;h4 id=&#34;テーブル名とクラス名&#34;&gt;テーブル名とクラス名&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;テーブル名は複数形&lt;/li&gt;
+&lt;li&gt;単語の区切りはアンダーバー(_)&lt;/li&gt;
+&lt;li&gt;対応するクラス名は単語の先頭を大文字にして _ を取り除いたもの&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;キーのカラム名&#34;&gt;キーのカラム名&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;主キーのカラム名は「id」&lt;/li&gt;
+&lt;li&gt;外部キーのカラム名は「テーブル名の単数_id」&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;日付関連のカラム名&#34;&gt;日付関連のカラム名&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;DATE型のカラムには名前を 「受動態_on」&lt;/li&gt;
+&lt;li&gt;TIMESTAMP型のカラムには名前を「受動態_at」&lt;/li&gt;
+&lt;li&gt;更新日時、作成日時は「updated_at」、「created_at」&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;結合テーブル&#34;&gt;結合テーブル&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;関連させたいテーブル名をくっつけた名前にする&lt;/li&gt;
+&lt;li&gt;カラム「id」を作らずに、関連させる2つのキーのセットを主キーにする&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;参考: &lt;a href=&#34;http://railsdoc.com/rails_base&#34;&gt;Railsドキュメント&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;型一覧&#34;&gt;型一覧&lt;/h3&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;rails g model&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;sqlite&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;mysql&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;postgresql&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;ruby&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:binary&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;bolb&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;bolb&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;bytea&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;String&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:boolean&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;boolean&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;tinyint(1)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;boolean&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;TrueClass/FalseClass&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:date&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;date&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;date&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;date&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Date&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:datetime&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;timestamp&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Time&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:decimal&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;decimal&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;decimal&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;decimal&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;BigDecimal&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:float&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;float&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;float&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;float&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Float&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:integer&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;integer&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;int(11)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;integer&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Fixnum&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:string&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;varchar(255)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;varchar(255)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;character varying(256)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;String&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:text&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;test&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;text&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;text&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;String&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:time&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;time&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;time&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Time&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;:timestamp&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;datetime&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;timestamp&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Time&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;ちなみに主キーは自動的に作成されるので、&lt;code&gt;rails g id:primary_key&lt;/code&gt;とかで作る必要はない。&lt;/p&gt;
+
+&lt;p&gt;あとは以下のコマンドで反映させればOK&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;DBを反映前の状態に戻したい場合は以下のコマンドを使う。&lt;/p&gt;
+
+&lt;h4 id=&#34;dbを1つ前に戻す&#34;&gt;DBを1つ前に戻す&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:rollback
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;dbを最初に戻す&#34;&gt;DBを最初に戻す&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate VERSION=0
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsのよく使うコマンドをまとめてみた</title>
+      <link>https://b.pyar.bz/20141015/rails-command</link>
+      <pubDate>Wed, 15 Oct 2014 23:47:39 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141015/rails-command</guid>
+      <description>
+
+&lt;p&gt;Scaffoldは使わない気がする。大体使うのcontrollerとmodelだなぁ。&lt;/p&gt;
+
+&lt;h3 id=&#34;controller&#34;&gt;Controller&lt;/h3&gt;
+
+&lt;p&gt;作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g controller コントローラ名 メソッド名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;削除&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails d controller コントローラ名 メソッド名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;model&#34;&gt;Model&lt;/h3&gt;
+
+&lt;p&gt;作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g model モデル名 カラム名1:型 カラム名2:型 ・・・・
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;削除&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails d model モデル名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;migration&#34;&gt;Migration&lt;/h3&gt;
+
+&lt;p&gt;DBの適用&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;DBを1つ前に戻す&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rake db:rollback
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;DBを最初に戻す&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rake db:migrate VERSION=0
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;test-rspec時&#34;&gt;Test(rspec時)&lt;/h3&gt;
+
+&lt;p&gt;modelテスト作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g rspec:model テスト名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;controllerテスト作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g rspec:controller テスト名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;viewテスト作成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ bundle exec rails g rspec:view テスト名
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;コマンド一覧&#34;&gt;コマンド一覧&lt;/h2&gt;
+
+&lt;p&gt;参考: &lt;a href=&#34;http://d.hatena.ne.jp/maeharin/20130212/rails_generate&#34;&gt;maeharinの日記&lt;/a&gt;&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;center&#34;&gt;コマンド名&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;コントローラ&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;ビュー&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;モデル&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;マイグレーション&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;アセット&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;ルート&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;テスト&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;ヘルパー&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;scaffold&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;scaffold_controller&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;controller&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;model&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;migration&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;○&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;×&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

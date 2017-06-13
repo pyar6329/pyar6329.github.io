@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Utc on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/utc/index.xml</link>
+    <description>Recent content in Utc on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/utc/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>RailsでのtimezoneをUTCにする</title>
+      <link>https://b.pyar.bz/20141027/rails-timezone</link>
+      <pubDate>Mon, 27 Oct 2014 18:38:11 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141027/rails-timezone</guid>
+      <description>
+
+&lt;p&gt;Railsで時間情報を扱う場合、JSTだとグローバル対応した時にいろいろ面倒。&lt;/p&gt;
+
+&lt;p&gt;なのでデータ情報は全てUTCで扱って、取得するときのみJSTに変換するようにする。&lt;/p&gt;
+
+&lt;p&gt;注意点としては以下の通り。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;modelで&lt;code&gt;datetime型&lt;/code&gt;に情報を渡す場合、&lt;code&gt;ActiveSupport::TimeWithZone&lt;/code&gt;型で渡しておく。&lt;/li&gt;
+&lt;li&gt;modelで&lt;code&gt;datetime型&lt;/code&gt;から情報を受け取る場合、JST時間に変換する。&lt;/li&gt;
+&lt;li&gt;現在時刻を扱う場合、&lt;code&gt;Time.now&lt;/code&gt;は使わずに&lt;code&gt;Time.zone.now&lt;/code&gt;を使う。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;設定&#34;&gt;設定&lt;/h2&gt;
+
+&lt;p&gt;日本在住の場合、初期設定時は以下のようになっている。&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;初期値&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Rails&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;UTC&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Rails ActiveRecord&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;UTC&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Heroku&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;UTC&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Heroku Postgres&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;UTC&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Amazon RDS&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;UTC&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;OS&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;JST&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;Homebrew(PostgreSQL)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;JST&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Rails、Heroku、RDS、OS辺りは特に設定はいらない。&lt;/p&gt;
+
+&lt;p&gt;自分のPCにpostgreSQLをインストールした場合は&lt;a href=&#34;http://b.pyar.bz/blog/2014/10/21/mac-postgresql-installation&#34;&gt;timezoneをUTCに設定しておく&lt;/a&gt;。&lt;/p&gt;
+
+&lt;h2 id=&#34;例&#34;&gt;例&lt;/h2&gt;
+
+&lt;p&gt;以下のplaysテーブルを例として考える。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/timezone/plays.png&#34;&gt;&lt;/p&gt;
+
+&lt;p&gt;まずmodelを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model play played_at:datetime
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;現在の時間を渡す場合&#34;&gt;現在の時間を渡す場合&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class Play &amp;lt; ActiveRecord::Base
+  play = Play.new()
+  play.played_at = Time.zone.now
+  play.save
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;文字列の時間を渡す場合&#34;&gt;文字列の時間を渡す場合&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class Play &amp;lt; ActiveRecord::Base
+  d_time = &amp;quot;Mon, 27 Oct 2014 17:44:24 +0900&amp;quot;
+  played_at = DateTime.strptime(d_time, &#39;%a, %d %b %Y %T %z&#39;).in_time_zone
+
+  play = Play.new()
+  hoge.played_at = played_at
+  play.save
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;modelから時間を取得する場合&#34;&gt;modelから時間を取得する場合&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;class Play &amp;lt; ActiveRecord::Base
+  play1 = Play.find(1)
+  played_time = play1.played_at.in_time_zone(&#39;Tokyo&#39;)
+end
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

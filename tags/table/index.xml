@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Table on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/table/index.xml</link>
+    <description>Recent content in Table on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/table/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>railsで多対多のテーブルを実装する</title>
+      <link>https://b.pyar.bz/20141016/many-to-many-table</link>
+      <pubDate>Thu, 16 Oct 2014 22:59:33 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141016/many-to-many-table</guid>
+      <description>
+
+&lt;p&gt;railsでmodelを作成するとき、多対多の実装方法が分かりづらかったのでまとめてみた。
+railsでの多対多の書き方はいろいろあるらしい。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;#1&#34;&gt;中間テーブルを作成し、&lt;code&gt;has_many :through&lt;/code&gt;を使う&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#2&#34;&gt;&lt;code&gt;has_and_belongs_to_many&lt;/code&gt;を使う&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#3&#34;&gt;&lt;code&gt;create_join_table&lt;/code&gt;を使う&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;1 → 3の順に情報が多い気がする。手軽さ的には 3 → 1の順かな。&lt;/p&gt;
+
+&lt;p&gt;個人的には1がおすすめ。理由としては、&lt;strong&gt;中間テーブル名を用いてDBにアクセス出来る&lt;/strong&gt;ことと、&lt;strong&gt;中間テーブルに属性を後で付加できる&lt;/strong&gt;から。&lt;/p&gt;
+
+&lt;p&gt;例として&lt;strong&gt;画像にtagデータを持たせる&lt;/strong&gt;テーブルを考える。&lt;/p&gt;
+
+&lt;p&gt;Toxi法で多対多のテーブルを作成する。&lt;a href=&#34;http://b.pyar.bz/blog/2014/10/15/model/&#34;&gt;railsの規約&lt;/a&gt;に沿ってDB設計をした。ER図は以下の通り。&lt;/p&gt;
+
+&lt;h3 id=&#34;1の場合&#34;&gt;1の場合&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;100%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/model/many_many.png&#34;&gt;&lt;/div&gt;
+
+&lt;h3 id=&#34;2-3の場合&#34;&gt;2, 3の場合&lt;/h3&gt;
+
+&lt;div&gt;&lt;img width=&#34;80%&#34; src=&#34;https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/model/many_many_no_.png&#34;&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code&gt;images&lt;/code&gt;テーブルには&lt;code&gt;name&lt;/code&gt;と&lt;code&gt;URL&lt;/code&gt;の情報を保存し、&lt;code&gt;tags&lt;/code&gt;テーブルには&lt;code&gt;name&lt;/code&gt;の情報を保存させる。&lt;code&gt;tag_id&lt;/code&gt;と&lt;code&gt;image_id&lt;/code&gt;は外部キー。&lt;/p&gt;
+
+&lt;p&gt;違いは中間テーブルの有無だけで、やってることは同じ。実際にはrailsが中間テーブルを自動生成してくれるので、2,3も1のようなテーブルになる。&lt;/p&gt;
+
+&lt;p&gt;ではER図を元にrailsで実装してみる。&lt;/p&gt;
+
+&lt;h2&gt;&lt;a name=&#34;1&#34; class=&#34;content-link&#34;&gt;1. 中間テーブルを作成し、&lt;code&gt;has_many :through&lt;/code&gt;を使った場合&lt;/a&gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;rails g model&lt;/code&gt;コマンドを用いて、テーブルを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model image name:string url:string
+$ rails g model tag name:string
+$ rails g model image_tag image:references tag:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;テーブル名が単数形であることに注意。railsではActive Record経由で自動的に複数形にしてくれる。&lt;/p&gt;
+
+&lt;p&gt;中間テーブルと関連付けさせる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Image &amp;lt; ActiveRecord::Base
+  has_many :image_tags
+  has_many :tags, :through =&amp;gt; :image_tags
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class Tag &amp;lt; ActiveRecord::Base
+  has_many :image_tags
+  has_many :images, :through =&amp;gt; :image_tags
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class ImageTag &amp;lt; ActiveRecord::Base
+  belongs_to :image
+  belongs_to :tag
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみにmigrateファイルは以下のようになっている。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImages &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images do |t|
+      t.string :name
+      t.string :url
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :tags do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImageTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :image_tags do |t|
+      t.references :image, index: true, null: false
+      t.references :tag, index: true, null: false
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;外部キーに&lt;code&gt;not null&lt;/code&gt;制約を付加している。&lt;/p&gt;
+
+&lt;p&gt;最後にマイグレートする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2&gt;&lt;a name=&#34;2&#34; class=&#34;content-link&#34;&gt;2. &lt;code&gt;has_and_belongs_to_many&lt;/code&gt;を使った場合&lt;/a&gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;rails g model&lt;/code&gt;コマンドを用いて、テーブルを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model image name:string url:string
+$ rails g model tag name:string
+$ rails g migration create_images_tags image:references tag:references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;中間テーブルは作らない。migrationファイルで関連付けさせる。&lt;/p&gt;
+
+&lt;p&gt;テーブルを関連付けさせる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Image &amp;lt; ActiveRecord::Base
+  has_and_belongs_to_many :tags
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class Tag &amp;lt; ActiveRecord::Base
+  has_and_belongs_to_many :images
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;migrationファイルを編集する&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;元のファイル&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImagesTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images_tags do |t|
+      t.references :image, index: true
+      t.references :tag, index: true
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;これを&lt;code&gt;has_and_belongs_to_many&lt;/code&gt;の規約で編集する&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;h4 id=&#34;has-and-belongs-to-many-アソシエーションの規約&#34;&gt;has_and_belongs_to_many アソシエーションの規約&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;中間テーブルを作成しなければならない。&lt;/li&gt;
+&lt;li&gt;中間テーブルのテーブル名は参照先のテーブル名を辞書順に「_」で連結しなければならない。(※)&lt;/li&gt;
+&lt;li&gt;中間テーブルの主キー列を無効化しなくてはならない。&lt;/li&gt;
+&lt;li&gt;中間テーブルの外部キー列は「参照先のモデル名_id」の形式にしなければならない。&lt;/li&gt;
+&lt;li&gt;中間テーブルのタイムスタンプ列を削除しなくてはならない。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;code&gt;変更後&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImagesTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images_tags, id: false do |t|
+      t.references :image, index: true, null: false
+      t.references :tag, index: true, null: false
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;外部キーに&lt;code&gt;not null&lt;/code&gt;制約を付加している。&lt;/p&gt;
+
+&lt;p&gt;変更前に&lt;code&gt;id: false&lt;/code&gt;を追加しただけ。外部キー名を明記しないのは、自動生成してくれるため。&lt;/p&gt;
+
+&lt;p&gt;ちなみに他のmigrateファイルは以下のようになっている。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImages &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images do |t|
+      t.string :name
+      t.string :url
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :tags do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最後にマイグレートする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2&gt;&lt;a name=&#34;3&#34; class=&#34;content-link&#34;&gt;3. &lt;code&gt;create_join_table&lt;/code&gt;を使った場合&lt;/a&gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;rails g model&lt;/code&gt;コマンドを用いて、テーブルを作成する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails g model image name:string url:string
+$ rails g model tag name:string
+$ rails g migration create_join_table_images_tags image tag
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;中間テーブルは作らない。migrationファイルで関連付けさせる。&lt;/p&gt;
+
+&lt;p&gt;テーブルを関連付けさせる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Image &amp;lt; ActiveRecord::Base
+  has_and_belongs_to_many :tags
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class Tag &amp;lt; ActiveRecord::Base
+  has_and_belongs_to_many :images
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;migrationファイルを編集する&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;元のファイル&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateJoinTableImagesTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_join_table :images, :tags do |t|
+      # t.index [:image_id, :tag_id]
+      # t.index [:tag_id, :image_id]
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;コメントアウトを外す。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;変更後&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateJoinTableImagesTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_join_table :images, :tags do |t|
+      t.index [:image_id, :tag_id]
+      t.index [:tag_id, :image_id]
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみに他のmigrateファイルは以下のようになっている。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateImages &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :images do |t|
+      t.string :name
+      t.string :url
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;class CreateTags &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :tags do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最後にマイグレートする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

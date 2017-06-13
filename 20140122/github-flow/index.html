@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="@pyar6329">
+<meta name="description" content="tech blog">
+<meta name="generator" content="Hugo 0.19" />
+<title>Github-flowを分かりやすく図解してみた</title>
+<link rel="shortcut icon" href="https://b.pyar.bz/images/favicon.ico">
+<link rel="stylesheet" href="https://b.pyar.bz/css/style.css">
+<link rel="stylesheet" href="https://b.pyar.bz/css/highlight.css">
+
+<link rel="stylesheet" href="https://b.pyar.bz/css/layout.css">
+
+
+
+<link rel="stylesheet" href="https://b.pyar.bz/css/monosocialiconsfont.css">
+
+
+
+<link href="https://b.pyar.bz/index.xml" rel="alternate" type="application/rss+xml" title="pyar.bz" />
+
+
+<meta property="og:title" content="Github-flowを分かりやすく図解してみた" />
+<meta property="og:description" content="「github チーム 使い方」とかでggってみたら、git-flowとGithub-flowがごっちゃになっててわかりづらい。他の人に説明する時にも使いそうなので、個人的にまとめてみた。
+Contents  Github flowって何よ？ 概要教えて 特徴は？ 欠点は？ 流れを図で説明して 実際にどうやんの？  リポジトリを準備する 各ユーザーをCollaboratorに登録する git clone masterからgit branch コーディング git push pull request masterブランチへmarge 直ちにdeploy ブランチを削除 git pull  参照  Github flowって何よ？
+ 複数人で開発するときに、github上のリポジトリをどう運用するかをまとめたもの。
+概要教えて
+  masterブランチのものは、いつでもデプロイ出来る状態で無ければならない 新しい何かに取り組む際は、masterからブランチを作成する 作成したブランチは、説明的な名前を付ける（例: new-oauth2-scopes） 作成したブランチは、定期的にgithub上へgit pushする フィードバックや助言、ブランチのマージをして欲しいときは、github上でpull requestを作成する 他の誰かがレビューをする。 OKが出たら、masterへmargeできる マージをしてmasterへpushしたら、直ちにデプロイをする  特徴は？
+  リポジトリは1つだけを共有する (forkしない) 開発する人をColleboratorに登録し、登録されていない人はgit pushできない ブランチでタスク (今やってること) を管理できるので、運用が楽。  欠点は？
+  集中型管理であるため、非匿名多数での開発には向いていない。(例: オープンソースプロジェクト) teamリポジトリでない場合、masterブランチにgit pushする恐れがある。 リポジトリが1つしかないので、アカウントが消えたら色々死ぬ。(ローカルにデータがあれば別)  流れを図で説明して" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://b.pyar.bz/20140122/github-flow" />
+
+
+
+<meta property="article:published_time" content="2014-01-22T16:48:31-09:00"/>
+<meta property="article:modified_time" content="2014-01-22T16:48:31-09:00"/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="Github-flowを分かりやすく図解してみた">
+<meta itemprop="description" content="「github チーム 使い方」とかでggってみたら、git-flowとGithub-flowがごっちゃになっててわかりづらい。他の人に説明する時にも使いそうなので、個人的にまとめてみた。
+Contents  Github flowって何よ？ 概要教えて 特徴は？ 欠点は？ 流れを図で説明して 実際にどうやんの？  リポジトリを準備する 各ユーザーをCollaboratorに登録する git clone masterからgit branch コーディング git push pull request masterブランチへmarge 直ちにdeploy ブランチを削除 git pull  参照  Github flowって何よ？
+ 複数人で開発するときに、github上のリポジトリをどう運用するかをまとめたもの。
+概要教えて
+  masterブランチのものは、いつでもデプロイ出来る状態で無ければならない 新しい何かに取り組む際は、masterからブランチを作成する 作成したブランチは、説明的な名前を付ける（例: new-oauth2-scopes） 作成したブランチは、定期的にgithub上へgit pushする フィードバックや助言、ブランチのマージをして欲しいときは、github上でpull requestを作成する 他の誰かがレビューをする。 OKが出たら、masterへmargeできる マージをしてmasterへpushしたら、直ちにデプロイをする  特徴は？
+  リポジトリは1つだけを共有する (forkしない) 開発する人をColleboratorに登録し、登録されていない人はgit pushできない ブランチでタスク (今やってること) を管理できるので、運用が楽。  欠点は？
+  集中型管理であるため、非匿名多数での開発には向いていない。(例: オープンソースプロジェクト) teamリポジトリでない場合、masterブランチにgit pushする恐れがある。 リポジトリが1つしかないので、アカウントが消えたら色々死ぬ。(ローカルにデータがあれば別)  流れを図で説明して">
+
+
+<meta itemprop="dateModified" content="2014-01-22T16:48:31-09:00" />
+<meta itemprop="wordCount" content="163">
+
+
+
+<meta itemprop="keywords" content="programming,ネットワーク,プログラミング,環境構築,開発手法,api,basic,binstubs,capybara,coffee,command,config,controller,datetime,db,erb,er図,factory_girl,foreigner,gem,get,git,github,github-flow,guard,haml,has_one,heroku,intellij,ip,ipoe,ipv4,ipv6,isp,java,java8,jbuilder,json,jst,kvs,less,mac,match,migrate,model,network,newrelic,nosql,oreilly,parse,ping,postgres,postgresql,production,pry,public,rails,rails4,rake,redis,routing,rspec,ruby,sass,scaffold,scss,slim,speedtest,spring,table,test,timestamp,timezone,travis,type,uri,url,utc,vagrant,vne,yaml,オライリー,グローバル参照,コマンド,スリープ,チーム,テーブル,デプロイ,パース,メモ,ルーティング,図解,外部キー,外部キー制約,外部キー嫌い,多対多,時間,環境変数," />
+
+
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="Github-flowを分かりやすく図解してみた"/>
+<meta name="twitter:title" content="Github-flowを分かりやすく図解してみた"/>
+<meta name="twitter:description" content="「github チーム 使い方」とかでggってみたら、git-flowとGithub-flowがごっちゃになっててわかりづらい。他の人に説明する時にも使いそうなので、個人的にまとめてみた。
+Contents  Github flowって何よ？ 概要教えて 特徴は？ 欠点は？ 流れを図で説明して 実際にどうやんの？  リポジトリを準備する 各ユーザーをCollaboratorに登録する git clone masterからgit branch コーディング git push pull request masterブランチへmarge 直ちにdeploy ブランチを削除 git pull  参照  Github flowって何よ？
+ 複数人で開発するときに、github上のリポジトリをどう運用するかをまとめたもの。
+概要教えて
+  masterブランチのものは、いつでもデプロイ出来る状態で無ければならない 新しい何かに取り組む際は、masterからブランチを作成する 作成したブランチは、説明的な名前を付ける（例: new-oauth2-scopes） 作成したブランチは、定期的にgithub上へgit pushする フィードバックや助言、ブランチのマージをして欲しいときは、github上でpull requestを作成する 他の誰かがレビューをする。 OKが出たら、masterへmargeできる マージをしてmasterへpushしたら、直ちにデプロイをする  特徴は？
+  リポジトリは1つだけを共有する (forkしない) 開発する人をColleboratorに登録し、登録されていない人はgit pushできない ブランチでタスク (今やってること) を管理できるので、運用が楽。  欠点は？
+  集中型管理であるため、非匿名多数での開発には向いていない。(例: オープンソースプロジェクト) teamリポジトリでない場合、masterブランチにgit pushする恐れがある。 リポジトリが1つしかないので、アカウントが消えたら色々死ぬ。(ローカルにデータがあれば別)  流れを図で説明して"/>
+
+
+
+    </head>
+<body>
+    <nav class="main-nav">
+	
+		<a href='https://b.pyar.bz/'> <span class="arrow">←</span>Home</a>
+	
+
+	
+
+	
+		<a class="cta" href="https://b.pyar.bz/index.xml">Subscribe</a>
+	
+</nav>
+
+    <section id="wrapper">
+        
+        
+<article class="post">
+    <header>
+        <h1>Github-flowを分かりやすく図解してみた</h1>
+        <h2 class="headline">
+        January 22, 2014
+        <br>
+        
+        
+            
+                <a href="https://b.pyar.bz/tags/github">github</a>
+            
+                <a href="https://b.pyar.bz/tags/git">git</a>
+            
+                <a href="https://b.pyar.bz/tags/github-flow">github-flow</a>
+            
+                <a href="https://b.pyar.bz/tags/%E5%9B%B3%E8%A7%A3">図解</a>
+            
+                <a href="https://b.pyar.bz/tags/%E3%83%81%E3%83%BC%E3%83%A0">チーム</a>
+            
+        
+        
+        </h2>
+    </header>
+    <section id="post-body">
+        
+
+<p>「github チーム 使い方」とかでggってみたら、git-flowとGithub-flowがごっちゃになっててわかりづらい。他の人に説明する時にも使いそうなので、個人的にまとめてみた。</p>
+
+<!-- more -->
+
+<h3 id="contents">Contents</h3>
+
+<ul>
+<li><a href="#github-flow">Github flowって何よ？</a></li>
+<li><a href="#outline">概要教えて</a></li>
+<li><a href="#characteristic">特徴は？</a></li>
+<li><a href="#weak-points">欠点は？</a></li>
+<li><a href="#diagram">流れを図で説明して</a></li>
+<li><a href="#using">実際にどうやんの？</a>
+
+<ol>
+<li><a href="#repository">リポジトリを準備する</a></li>
+<li><a href="#collaborator">各ユーザーをCollaboratorに登録する</a></li>
+<li><a href="#clone">git clone</a></li>
+<li><a href="#branch">masterからgit branch</a></li>
+<li><a href="#coding">コーディング</a></li>
+<li><a href="#push">git push</a></li>
+<li><a href="#pull">pull request</a></li>
+<li><a href="#marge">masterブランチへmarge</a></li>
+<li><a href="#deploy">直ちにdeploy</a></li>
+<li><a href="#remove">ブランチを削除</a></li>
+<li><a href="#gitpull">git pull</a></li>
+</ol></li>
+<li><a href="#reference">参照</a></li>
+</ul>
+
+<h1 id="p-id-github-flow-github-flowって何よ-p"><p id="github-flow">Github flowって何よ？</p></h1>
+
+<p>複数人で開発するときに、<code>github上のリポジトリ</code>をどう運用するかをまとめたもの。</p>
+
+<h1 id="p-id-outline-概要教えて-p"><p id="outline">概要教えて</p></h1>
+
+<ul>
+<li>masterブランチのものは、いつでもデプロイ出来る状態で無ければならない</li>
+<li>新しい何かに取り組む際は、masterからブランチを作成する</li>
+<li>作成したブランチは、説明的な名前を付ける（例: new-oauth2-scopes）</li>
+<li>作成したブランチは、定期的にgithub上へ<code>git push</code>する</li>
+<li>フィードバックや助言、ブランチのマージをして欲しいときは、github上で<code>pull request</code>を作成する</li>
+<li>他の誰かがレビューをする。</li>
+<li>OKが出たら、masterへ<code>marge</code>できる</li>
+<li>マージをしてmasterへpushしたら、直ちにデプロイをする</li>
+</ul>
+
+<h1 id="p-id-characteristic-特徴は-p"><p id="characteristic">特徴は？</p></h1>
+
+<ul>
+<li>リポジトリは1つだけを共有する (forkしない)</li>
+<li>開発する人をColleboratorに登録し、登録されていない人は<code>git push</code>できない</li>
+<li>ブランチでタスク (今やってること) を管理できるので、運用が楽。</li>
+</ul>
+
+<h1 id="p-id-weak-points-欠点は-p"><p id="weak-points">欠点は？</p></h1>
+
+<ul>
+<li>集中型管理であるため、非匿名多数での開発には向いていない。(例: オープンソースプロジェクト)</li>
+<li>teamリポジトリでない場合、masterブランチに<code>git push</code>する恐れがある。</li>
+<li>リポジトリが1つしかないので、アカウントが消えたら色々死ぬ。(ローカルにデータがあれば別)</li>
+</ul>
+
+<h1 id="p-id-diagram-流れを図で説明して-p"><p id="diagram">流れを図で説明して</p></h1>
+
+<p>こんな流れになる。
+<img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/flow-chart.png" alt="" /></p>
+
+<h1 id="p-id-using-実際にどうやんの-p"><p id="using">実際にどうやんの？</p></h1>
+
+<h2 id="p-id-repository-1-リポジトリを準備する-p"><p id="repository">1.リポジトリを準備する</p></h2>
+
+<p>レポジトリを作成する
+<img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/make_repository.png" alt="" /></p>
+
+<p>README.mdを作成するにチェックを入れて、レポジトリを作る
+<img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/test_repo.png" alt="" /></p>
+
+<h2 id="p-id-collaborator-2-各ユーザーをcollaboratorに登録する-p"><p id="collaborator">2.各ユーザーをCollaboratorに登録する</p></h2>
+
+<p>Collaboratorに登録する。登録者以外は<code>git push</code>出来ないようにする。</p>
+
+<p><img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/github_setting.png" alt="" /></p>
+
+<p><img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/collaborator_setting.png" alt="" /></p>
+
+<p><img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/add_collaboratior.png" alt="" /></p>
+
+<h2 id="p-id-clone-3-git-clone-p"><p id="clone">3.<code>git clone</code></p></h2>
+
+<p>github上で作成したリポジトリをローカルに持ってくる
+<img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/git_clone.png" alt="" /></p>
+
+<pre><code>$ git clone &quot;your_repository&quot;
+$ cd &quot;your_repository&quot;
+</code></pre>
+
+<h2 id="p-id-branch-4-masterから-git-branch-p"><p id="branch">4.masterから<code>git branch</code></p></h2>
+
+<p>機能毎にブランチを切る。ブランチ名は説明的な名前。
+<img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/git_branch.png" alt="" /></p>
+
+<pre><code>$ git checkout -b &quot;new_branch&quot;
+</code></pre>
+
+<p>もしくは</p>
+
+<pre><code>$ git branch &quot;new_branch&quot;
+$ git checkout &quot;new_branch&quot;
+</code></pre>
+
+<h2 id="p-id-coding-5-コーディング-p"><p id="coding">5.コーディング</p></h2>
+
+<p>コーディングする。</p>
+
+<h2 id="p-id-push-6-git-push-p"><p id="push">6.<code>git push</code></p></h2>
+
+<p><code>ローカル上で</code>切ったbranchを定期的にgithubに反映させる
+<img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/git_push.png" alt="" /></p>
+
+<pre><code>$ git add -A
+$ git commit -m &quot;commit messages&quot;
+$ git push origin &quot;new_branch&quot;
+</code></pre>
+
+<h2 id="p-id-pull-7-pull-request-p"><p id="pull">7.pull request</p></h2>
+
+<p>もし、以下のことをしたい場合、<code>github上で</code>pull requestを送る</p>
+
+<ul>
+<li>レビューしてほしい</li>
+<li>ここが分からない</li>
+<li>完成したのでmergeしてほしい</li>
+</ul>
+
+<p><img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/pull_request.png" alt="" /></p>
+
+<p><img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/pull_request_decision.png" alt="" /></p>
+
+<h2 id="p-id-marge-8-masterブランチへmarge-p"><p id="marge">8.masterブランチへmarge</p></h2>
+
+<p><code>github上で</code>許可が出たら、<code>github上で</code>mergeする</p>
+
+<p><img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/marge_pull_request.png" alt="" /></p>
+
+<p><img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/git_marge.png" alt="" /></p>
+
+<h2 id="p-id-deploy-9-直ちにdeploy-p"><p id="deploy">9.直ちにdeploy</p></h2>
+
+<p>deployして反映させる</p>
+
+<p><img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/git_deploy.png" alt="" /></p>
+
+<h2 id="p-id-remove-10-ブランチを削除-p"><p id="remove">10.ブランチを削除</p></h2>
+
+<p>機能更新が終了したら、<code>ローカル上で</code>ブランチを削除する</p>
+
+<p><img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/git_remove.png" alt="" /></p>
+
+<pre><code>$ git checkout master
+$ git branch -D &quot;new_branch&quot;
+</code></pre>
+
+<p><code>github上の</code>ブランチを削除する
+<img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/github_rm.png" alt="" /></p>
+
+<pre><code>$ git push origin :&quot;new_branch&quot;
+</code></pre>
+
+<h2 id="p-id-gitpull-11-git-pull-p"><p id="gitpull">11.<code>git pull</code></p></h2>
+
+<p>git pullしてmasterリポジトリを更新する</p>
+
+<p><img src="//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/git_pull.png" alt="" /></p>
+
+<pre><code>$ git pull origin master
+</code></pre>
+
+<p>もしくは</p>
+
+<pre><code>$ git fetch origin master
+$ git marge origin/master
+</code></pre>
+
+<p>あとは4~11を繰り返すだけ</p>
+
+<h1 id="p-id-reference-参照-p"><p id="reference">参照</p></h1>
+
+<p><a href="//gist.github.com/Gab-km/3705015">//gist.github.com/Gab-km/3705015</a></p>
+
+    </section>
+</article>
+
+<footer id="post-meta" class="clearfix">
+    
+    <img class="avatar" src="https://b.pyar.bz/images/avatar.png">
+    <div>
+        <span class="dark">@pyar6329</span>
+        <span>I&#39;m programmer.</span>
+    </div>
+    
+    <section id="sharing">
+        <a class="twitter" href="https://twitter.com/intent/tweet?text=https%3a%2f%2fb.pyar.bz%2f20140122%2fgithub-flow - Github-flow%e3%82%92%e5%88%86%e3%81%8b%e3%82%8a%e3%82%84%e3%81%99%e3%81%8f%e5%9b%b3%e8%a7%a3%e3%81%97%e3%81%a6%e3%81%bf%e3%81%9f "><span class="icon-twitter"> tweet</span></a>
+
+<a class="facebook" href="#" onclick="
+    window.open(
+      'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+      'facebook-share-dialog',
+      'width=626,height=436');
+    return false;"><span class="icon-facebook-rect"> Share</span>
+</a>
+
+    </section>
+</footer>
+
+
+
+<ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="https://b.pyar.bz/20170608/api-uri">APIのURIを短くする<aside class="dates">Jun 8 2017</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20170324/ipv6">あなたのお家の光回線速度を上げる方法<aside class="dates">Mar 24 2017</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20160628/redis-keys">redisのkeyについて調べてみた<aside class="dates">Jun 28 2016</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141027/rails-timezone">RailsでのtimezoneをUTCにする<aside class="dates">Oct 27 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141023/has-one">has-oneが動作しなかったのでclass_nameを追加した<aside class="dates">Oct 23 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/mac-postgresql-installation">macでPostgreSQLをインストールする<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/migrate-command">migrateコマンドを省略する<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/rake-db-migrate">railsで動作モードを変更する<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/foreigner">railsに外部キー制約を追加してみた<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141016/many-to-many-table">railsで多対多のテーブルを実装する<aside class="dates">Oct 16 2014</aside></a>
+        </li>
+    
+</ul>
+
+
+
+        <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://www.github.com/pyar6329">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+        © Copyright 2017 @pyar6329
+    
+    </p>
+</footer>
+
+    </section>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://b.pyar.bz/js/main.js"></script>
+<script src="https://b.pyar.bz/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47263119-3', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+</body>
+</html>

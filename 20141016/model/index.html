@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="@pyar6329">
+<meta name="description" content="tech blog">
+<meta name="generator" content="Hugo 0.19" />
+<title>railsのmodelについて調べてみた</title>
+<link rel="shortcut icon" href="https://b.pyar.bz/images/favicon.ico">
+<link rel="stylesheet" href="https://b.pyar.bz/css/style.css">
+<link rel="stylesheet" href="https://b.pyar.bz/css/highlight.css">
+
+<link rel="stylesheet" href="https://b.pyar.bz/css/layout.css">
+
+
+
+<link rel="stylesheet" href="https://b.pyar.bz/css/monosocialiconsfont.css">
+
+
+
+<link href="https://b.pyar.bz/index.xml" rel="alternate" type="application/rss+xml" title="pyar.bz" />
+
+
+<meta property="og:title" content="railsのmodelについて調べてみた" />
+<meta property="og:description" content="railsでmodelを操作するときは、以下のコマンドを使う。
+作成 $ rails g model テーブル名 カラム名:型 カラム名:型 ・・・  削除 $ rails d model テーブル名 カラム名:型 カラム名:型 ・・・  作成はg、削除はd。
+また、外部キーを追加する場合にはこうする。
+作成(外部キー有) $ rails g model テーブル名 カラム名:型 カラム名:型 外部キーのテーブル名:references  削除(外部キー有) $ rails d model テーブル名 カラム名:型 カラム名:型 外部キーのテーブル名:references  既存のテーブルに外部キーを追加する場合は、上記のコマンドでは追加できない。その場合はmigrationを用いる。
+$ rails g migration テーブル名 外部キーのテーブル名:references  ちなみに、railsには以下の規約がある。なので上記のテーブル名は小文字かつ単数形である必要がある。
+テーブル名とクラス名  テーブル名は複数形 単語の区切りはアンダーバー(_) 対応するクラス名は単語の先頭を大文字にして _ を取り除いたもの  キーのカラム名  主キーのカラム名は「id」 外部キーのカラム名は「テーブル名の単数_id」  日付関連のカラム名  DATE型のカラムには名前を 「受動態_on」 TIMESTAMP型のカラムには名前を「受動態_at」 更新日時、作成日時は「updated_at」、「created_at」  結合テーブル  関連させたいテーブル名をくっつけた名前にする カラム「id」を作らずに、関連させる2つのキーのセットを主キーにする  参考: Railsドキュメント" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://b.pyar.bz/20141016/model" />
+
+
+
+<meta property="article:published_time" content="2014-10-16T00:33:20-09:00"/>
+<meta property="article:modified_time" content="2014-10-16T00:33:20-09:00"/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="railsのmodelについて調べてみた">
+<meta itemprop="description" content="railsでmodelを操作するときは、以下のコマンドを使う。
+作成 $ rails g model テーブル名 カラム名:型 カラム名:型 ・・・  削除 $ rails d model テーブル名 カラム名:型 カラム名:型 ・・・  作成はg、削除はd。
+また、外部キーを追加する場合にはこうする。
+作成(外部キー有) $ rails g model テーブル名 カラム名:型 カラム名:型 外部キーのテーブル名:references  削除(外部キー有) $ rails d model テーブル名 カラム名:型 カラム名:型 外部キーのテーブル名:references  既存のテーブルに外部キーを追加する場合は、上記のコマンドでは追加できない。その場合はmigrationを用いる。
+$ rails g migration テーブル名 外部キーのテーブル名:references  ちなみに、railsには以下の規約がある。なので上記のテーブル名は小文字かつ単数形である必要がある。
+テーブル名とクラス名  テーブル名は複数形 単語の区切りはアンダーバー(_) 対応するクラス名は単語の先頭を大文字にして _ を取り除いたもの  キーのカラム名  主キーのカラム名は「id」 外部キーのカラム名は「テーブル名の単数_id」  日付関連のカラム名  DATE型のカラムには名前を 「受動態_on」 TIMESTAMP型のカラムには名前を「受動態_at」 更新日時、作成日時は「updated_at」、「created_at」  結合テーブル  関連させたいテーブル名をくっつけた名前にする カラム「id」を作らずに、関連させる2つのキーのセットを主キーにする  参考: Railsドキュメント">
+
+
+<meta itemprop="dateModified" content="2014-10-16T00:33:20-09:00" />
+<meta itemprop="wordCount" content="146">
+
+
+
+<meta itemprop="keywords" content="programming,ネットワーク,プログラミング,環境構築,開発手法,api,basic,binstubs,capybara,coffee,command,config,controller,datetime,db,erb,er図,factory_girl,foreigner,gem,get,git,github,github-flow,guard,haml,has_one,heroku,intellij,ip,ipoe,ipv4,ipv6,isp,java,java8,jbuilder,json,jst,kvs,less,mac,match,migrate,model,network,newrelic,nosql,oreilly,parse,ping,postgres,postgresql,production,pry,public,rails,rails4,rake,redis,routing,rspec,ruby,sass,scaffold,scss,slim,speedtest,spring,table,test,timestamp,timezone,travis,type,uri,url,utc,vagrant,vne,yaml,オライリー,グローバル参照,コマンド,スリープ,チーム,テーブル,デプロイ,パース,メモ,ルーティング,図解,外部キー,外部キー制約,外部キー嫌い,多対多,時間,環境変数," />
+
+
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="railsのmodelについて調べてみた"/>
+<meta name="twitter:title" content="railsのmodelについて調べてみた"/>
+<meta name="twitter:description" content="railsでmodelを操作するときは、以下のコマンドを使う。
+作成 $ rails g model テーブル名 カラム名:型 カラム名:型 ・・・  削除 $ rails d model テーブル名 カラム名:型 カラム名:型 ・・・  作成はg、削除はd。
+また、外部キーを追加する場合にはこうする。
+作成(外部キー有) $ rails g model テーブル名 カラム名:型 カラム名:型 外部キーのテーブル名:references  削除(外部キー有) $ rails d model テーブル名 カラム名:型 カラム名:型 外部キーのテーブル名:references  既存のテーブルに外部キーを追加する場合は、上記のコマンドでは追加できない。その場合はmigrationを用いる。
+$ rails g migration テーブル名 外部キーのテーブル名:references  ちなみに、railsには以下の規約がある。なので上記のテーブル名は小文字かつ単数形である必要がある。
+テーブル名とクラス名  テーブル名は複数形 単語の区切りはアンダーバー(_) 対応するクラス名は単語の先頭を大文字にして _ を取り除いたもの  キーのカラム名  主キーのカラム名は「id」 外部キーのカラム名は「テーブル名の単数_id」  日付関連のカラム名  DATE型のカラムには名前を 「受動態_on」 TIMESTAMP型のカラムには名前を「受動態_at」 更新日時、作成日時は「updated_at」、「created_at」  結合テーブル  関連させたいテーブル名をくっつけた名前にする カラム「id」を作らずに、関連させる2つのキーのセットを主キーにする  参考: Railsドキュメント"/>
+
+
+
+    </head>
+<body>
+    <nav class="main-nav">
+	
+		<a href='https://b.pyar.bz/'> <span class="arrow">←</span>Home</a>
+	
+
+	
+
+	
+		<a class="cta" href="https://b.pyar.bz/index.xml">Subscribe</a>
+	
+</nav>
+
+    <section id="wrapper">
+        
+        
+<article class="post">
+    <header>
+        <h1>railsのmodelについて調べてみた</h1>
+        <h2 class="headline">
+        October 16, 2014
+        <br>
+        
+        
+            
+                <a href="https://b.pyar.bz/tags/ruby">ruby</a>
+            
+                <a href="https://b.pyar.bz/tags/rails">rails</a>
+            
+                <a href="https://b.pyar.bz/tags/rails4">rails4</a>
+            
+                <a href="https://b.pyar.bz/tags/model">model</a>
+            
+                <a href="https://b.pyar.bz/tags/%E5%A4%96%E9%83%A8%E3%82%AD%E3%83%BC">外部キー</a>
+            
+                <a href="https://b.pyar.bz/tags/db">DB</a>
+            
+                <a href="https://b.pyar.bz/tags/migrate">migrate</a>
+            
+        
+        
+        </h2>
+    </header>
+    <section id="post-body">
+        
+
+<p>railsでmodelを操作するときは、以下のコマンドを使う。</p>
+
+<h4 id="作成">作成</h4>
+
+<pre><code>$ rails g model テーブル名 カラム名:型 カラム名:型 ・・・
+</code></pre>
+
+<h4 id="削除">削除</h4>
+
+<pre><code>$ rails d model テーブル名 カラム名:型 カラム名:型 ・・・
+</code></pre>
+
+<p>作成はg、削除はd。</p>
+
+<p>また、外部キーを追加する場合にはこうする。</p>
+
+<h4 id="作成-外部キー有">作成(外部キー有)</h4>
+
+<pre><code>$ rails g model テーブル名 カラム名:型 カラム名:型 外部キーのテーブル名:references
+</code></pre>
+
+<h4 id="削除-外部キー有">削除(外部キー有)</h4>
+
+<pre><code>$ rails d model テーブル名 カラム名:型 カラム名:型 外部キーのテーブル名:references
+</code></pre>
+
+<p>既存のテーブルに外部キーを追加する場合は、上記のコマンドでは追加できない。その場合はmigrationを用いる。</p>
+
+<pre><code>$ rails g migration テーブル名 外部キーのテーブル名:references
+</code></pre>
+
+<p>ちなみに、railsには以下の規約がある。なので上記のテーブル名は<strong>小文字</strong>かつ<strong>単数形</strong>である必要がある。</p>
+
+<h4 id="テーブル名とクラス名">テーブル名とクラス名</h4>
+
+<ul>
+<li>テーブル名は複数形</li>
+<li>単語の区切りはアンダーバー(_)</li>
+<li>対応するクラス名は単語の先頭を大文字にして _ を取り除いたもの</li>
+</ul>
+
+<h4 id="キーのカラム名">キーのカラム名</h4>
+
+<ul>
+<li>主キーのカラム名は「id」</li>
+<li>外部キーのカラム名は「テーブル名の単数_id」</li>
+</ul>
+
+<h4 id="日付関連のカラム名">日付関連のカラム名</h4>
+
+<ul>
+<li>DATE型のカラムには名前を 「受動態_on」</li>
+<li>TIMESTAMP型のカラムには名前を「受動態_at」</li>
+<li>更新日時、作成日時は「updated_at」、「created_at」</li>
+</ul>
+
+<h4 id="結合テーブル">結合テーブル</h4>
+
+<ul>
+<li>関連させたいテーブル名をくっつけた名前にする</li>
+<li>カラム「id」を作らずに、関連させる2つのキーのセットを主キーにする</li>
+</ul>
+
+<p>参考: <a href="http://railsdoc.com/rails_base">Railsドキュメント</a></p>
+
+<h3 id="型一覧">型一覧</h3>
+
+<table>
+<thead>
+<tr>
+<th align="left">rails g model</th>
+<th align="left">sqlite</th>
+<th align="left">mysql</th>
+<th align="left">postgresql</th>
+<th align="left">ruby</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="left"><code>:binary</code></td>
+<td align="left">bolb</td>
+<td align="left">bolb</td>
+<td align="left">bytea</td>
+<td align="left">String</td>
+</tr>
+
+<tr>
+<td align="left"><code>:boolean</code></td>
+<td align="left">boolean</td>
+<td align="left">tinyint(1)</td>
+<td align="left">boolean</td>
+<td align="left">TrueClass/FalseClass</td>
+</tr>
+
+<tr>
+<td align="left"><code>:date</code></td>
+<td align="left">date</td>
+<td align="left">date</td>
+<td align="left">date</td>
+<td align="left">Date</td>
+</tr>
+
+<tr>
+<td align="left"><code>:datetime</code></td>
+<td align="left">datetime</td>
+<td align="left">datetime</td>
+<td align="left">timestamp</td>
+<td align="left">Time</td>
+</tr>
+
+<tr>
+<td align="left"><code>:decimal</code></td>
+<td align="left">decimal</td>
+<td align="left">decimal</td>
+<td align="left">decimal</td>
+<td align="left">BigDecimal</td>
+</tr>
+
+<tr>
+<td align="left"><code>:float</code></td>
+<td align="left">float</td>
+<td align="left">float</td>
+<td align="left">float</td>
+<td align="left">Float</td>
+</tr>
+
+<tr>
+<td align="left"><code>:integer</code></td>
+<td align="left">integer</td>
+<td align="left">int(11)</td>
+<td align="left">integer</td>
+<td align="left">Fixnum</td>
+</tr>
+
+<tr>
+<td align="left"><code>:string</code></td>
+<td align="left">varchar(255)</td>
+<td align="left">varchar(255)</td>
+<td align="left">character varying(256)</td>
+<td align="left">String</td>
+</tr>
+
+<tr>
+<td align="left"><code>:text</code></td>
+<td align="left">test</td>
+<td align="left">text</td>
+<td align="left">text</td>
+<td align="left">String</td>
+</tr>
+
+<tr>
+<td align="left"><code>:time</code></td>
+<td align="left">datetime</td>
+<td align="left">time</td>
+<td align="left">time</td>
+<td align="left">Time</td>
+</tr>
+
+<tr>
+<td align="left"><code>:timestamp</code></td>
+<td align="left">datetime</td>
+<td align="left">datetime</td>
+<td align="left">timestamp</td>
+<td align="left">Time</td>
+</tr>
+</tbody>
+</table>
+
+<p>ちなみに主キーは自動的に作成されるので、<code>rails g id:primary_key</code>とかで作る必要はない。</p>
+
+<p>あとは以下のコマンドで反映させればOK</p>
+
+<pre><code>rake db:migrate
+</code></pre>
+
+<p>DBを反映前の状態に戻したい場合は以下のコマンドを使う。</p>
+
+<h4 id="dbを1つ前に戻す">DBを1つ前に戻す</h4>
+
+<pre><code>$ rake db:rollback
+</code></pre>
+
+<h4 id="dbを最初に戻す">DBを最初に戻す</h4>
+
+<pre><code>$ rake db:migrate VERSION=0
+</code></pre>
+
+    </section>
+</article>
+
+<footer id="post-meta" class="clearfix">
+    
+    <img class="avatar" src="https://b.pyar.bz/images/avatar.png">
+    <div>
+        <span class="dark">@pyar6329</span>
+        <span>I&#39;m programmer.</span>
+    </div>
+    
+    <section id="sharing">
+        <a class="twitter" href="https://twitter.com/intent/tweet?text=https%3a%2f%2fb.pyar.bz%2f20141016%2fmodel - rails%e3%81%aemodel%e3%81%ab%e3%81%a4%e3%81%84%e3%81%a6%e8%aa%bf%e3%81%b9%e3%81%a6%e3%81%bf%e3%81%9f "><span class="icon-twitter"> tweet</span></a>
+
+<a class="facebook" href="#" onclick="
+    window.open(
+      'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+      'facebook-share-dialog',
+      'width=626,height=436');
+    return false;"><span class="icon-facebook-rect"> Share</span>
+</a>
+
+    </section>
+</footer>
+
+
+
+<ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="https://b.pyar.bz/20170608/api-uri">APIのURIを短くする<aside class="dates">Jun 8 2017</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20170324/ipv6">あなたのお家の光回線速度を上げる方法<aside class="dates">Mar 24 2017</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20160628/redis-keys">redisのkeyについて調べてみた<aside class="dates">Jun 28 2016</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141027/rails-timezone">RailsでのtimezoneをUTCにする<aside class="dates">Oct 27 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141023/has-one">has-oneが動作しなかったのでclass_nameを追加した<aside class="dates">Oct 23 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/mac-postgresql-installation">macでPostgreSQLをインストールする<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/migrate-command">migrateコマンドを省略する<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/rake-db-migrate">railsで動作モードを変更する<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/foreigner">railsに外部キー制約を追加してみた<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141016/many-to-many-table">railsで多対多のテーブルを実装する<aside class="dates">Oct 16 2014</aside></a>
+        </li>
+    
+</ul>
+
+
+
+        <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://www.github.com/pyar6329">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+        © Copyright 2017 @pyar6329
+    
+    </p>
+</footer>
+
+    </section>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://b.pyar.bz/js/main.js"></script>
+<script src="https://b.pyar.bz/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47263119-3', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+</body>
+</html>

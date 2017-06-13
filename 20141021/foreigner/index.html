@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="@pyar6329">
+<meta name="description" content="tech blog">
+<meta name="generator" content="Hugo 0.19" />
+<title>railsに外部キー制約を追加してみた</title>
+<link rel="shortcut icon" href="https://b.pyar.bz/images/favicon.ico">
+<link rel="stylesheet" href="https://b.pyar.bz/css/style.css">
+<link rel="stylesheet" href="https://b.pyar.bz/css/highlight.css">
+
+<link rel="stylesheet" href="https://b.pyar.bz/css/layout.css">
+
+
+
+<link rel="stylesheet" href="https://b.pyar.bz/css/monosocialiconsfont.css">
+
+
+
+<link href="https://b.pyar.bz/index.xml" rel="alternate" type="application/rss+xml" title="pyar.bz" />
+
+
+<meta property="og:title" content="railsに外部キー制約を追加してみた" />
+<meta property="og:description" content="データベースに関して調べることって、業務的な側面から、わかりづらい単語や言葉ばっかり使って理解しづらいよね。 誰でも分かるように説明するのがプロなんだよなぁ。。。。まぁいいか。
+プログラミングそのものに関してはそうでもないんだけどな。なので身近にあるもので例えてみる。
+外部キー(foreign key)とは  リレーショナルデータベース(RDB)で、テーブルのある列に、別のテーブルの特定の列に含まれる項目しか入力できないようにする制約。また、その際に指定する列。
+ 参考: e-words.jp
+うん言葉で言ってもわかりづらいｗ
+図で表してみる。
+ この左側の赤いやつが外部キー。別のテーブルの主キーを指してるでしょ？また、別のテーブルの主キーは参照キーと呼ばれる。
+外部キーの問題って？ じゃあもし外部キーの参照先が更新されたり、削除されたらどうなるか。
+animeテーブルのid = 2からid = 5に更新してみる。
+ anime_id = 2の状態ではあるけど、指している場所にデータがない。どこ指してるかわからない。
+参照整合性が取れない。いわゆる迷子レコードになる。
+なぜ外部キー制約を使うか じゃあこれをどうするかというと、以下の2通りの方法を行う。
+ アプリ側で監視する 外部キー制約を使う  普通は1を使うんだけど、1にも以下の問題点がある。
+ スクリプトを全ての参照に対して行う必要がある チェックを毎日、何回も実行しなければならない 参照が壊れていた場合でも修正できるかはわからない  この位の小さいテーブルだったらスクリプトでもいいけど、親、子、孫&hellip;と何個も組み合わさっているとチェックできるかは怪しい。
+そこで2の手法、外部キー制約を使う。
+ちなみに、これはオライリーのSQLアンチパターンに外部キー嫌いって項目で書いてある。
+
+この本、結構面白くてSQLでダメなことが一通り書いてある。 DB設計時にこれどうすればいいんだろうってのが結構解決する。俺でも分かったから、初心者でもわかりやすいと思う。 特にパスの閉包テーブルとポリモーフィックの単一テーブル継承(Single Table Inheritance、通称STI)にはお世話になりました。
+外部キー制約の種類 外部キー制約は更新時(UPDATE ON)と削除時(DELETE ON)にそれぞれ設定できる。
+外部キー制約は主に4種類。
+ NO ACTION RESTRICT CASCADE SET NULL  SET DEFAULTとかもあるけど、今回は割愛。NO ACTIONとRESTRICTは同じ。
+RESTRICT (NO ACTION)  子が外部キーを持っていた場合、その親の操作をさせなくする。
+CASCADE  子が外部キーを持っていた場合、その親が更新や削除したら、子もそれに追従する。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://b.pyar.bz/20141021/foreigner" />
+
+
+
+<meta property="article:published_time" content="2014-10-21T05:31:16-09:00"/>
+<meta property="article:modified_time" content="2014-10-21T05:31:16-09:00"/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="railsに外部キー制約を追加してみた">
+<meta itemprop="description" content="データベースに関して調べることって、業務的な側面から、わかりづらい単語や言葉ばっかり使って理解しづらいよね。 誰でも分かるように説明するのがプロなんだよなぁ。。。。まぁいいか。
+プログラミングそのものに関してはそうでもないんだけどな。なので身近にあるもので例えてみる。
+外部キー(foreign key)とは  リレーショナルデータベース(RDB)で、テーブルのある列に、別のテーブルの特定の列に含まれる項目しか入力できないようにする制約。また、その際に指定する列。
+ 参考: e-words.jp
+うん言葉で言ってもわかりづらいｗ
+図で表してみる。
+ この左側の赤いやつが外部キー。別のテーブルの主キーを指してるでしょ？また、別のテーブルの主キーは参照キーと呼ばれる。
+外部キーの問題って？ じゃあもし外部キーの参照先が更新されたり、削除されたらどうなるか。
+animeテーブルのid = 2からid = 5に更新してみる。
+ anime_id = 2の状態ではあるけど、指している場所にデータがない。どこ指してるかわからない。
+参照整合性が取れない。いわゆる迷子レコードになる。
+なぜ外部キー制約を使うか じゃあこれをどうするかというと、以下の2通りの方法を行う。
+ アプリ側で監視する 外部キー制約を使う  普通は1を使うんだけど、1にも以下の問題点がある。
+ スクリプトを全ての参照に対して行う必要がある チェックを毎日、何回も実行しなければならない 参照が壊れていた場合でも修正できるかはわからない  この位の小さいテーブルだったらスクリプトでもいいけど、親、子、孫&hellip;と何個も組み合わさっているとチェックできるかは怪しい。
+そこで2の手法、外部キー制約を使う。
+ちなみに、これはオライリーのSQLアンチパターンに外部キー嫌いって項目で書いてある。
+
+この本、結構面白くてSQLでダメなことが一通り書いてある。 DB設計時にこれどうすればいいんだろうってのが結構解決する。俺でも分かったから、初心者でもわかりやすいと思う。 特にパスの閉包テーブルとポリモーフィックの単一テーブル継承(Single Table Inheritance、通称STI)にはお世話になりました。
+外部キー制約の種類 外部キー制約は更新時(UPDATE ON)と削除時(DELETE ON)にそれぞれ設定できる。
+外部キー制約は主に4種類。
+ NO ACTION RESTRICT CASCADE SET NULL  SET DEFAULTとかもあるけど、今回は割愛。NO ACTIONとRESTRICTは同じ。
+RESTRICT (NO ACTION)  子が外部キーを持っていた場合、その親の操作をさせなくする。
+CASCADE  子が外部キーを持っていた場合、その親が更新や削除したら、子もそれに追従する。">
+
+
+<meta itemprop="dateModified" content="2014-10-21T05:31:16-09:00" />
+<meta itemprop="wordCount" content="266">
+
+
+
+<meta itemprop="keywords" content="programming,ネットワーク,プログラミング,環境構築,開発手法,api,basic,binstubs,capybara,coffee,command,config,controller,datetime,db,erb,er図,factory_girl,foreigner,gem,get,git,github,github-flow,guard,haml,has_one,heroku,intellij,ip,ipoe,ipv4,ipv6,isp,java,java8,jbuilder,json,jst,kvs,less,mac,match,migrate,model,network,newrelic,nosql,oreilly,parse,ping,postgres,postgresql,production,pry,public,rails,rails4,rake,redis,routing,rspec,ruby,sass,scaffold,scss,slim,speedtest,spring,table,test,timestamp,timezone,travis,type,uri,url,utc,vagrant,vne,yaml,オライリー,グローバル参照,コマンド,スリープ,チーム,テーブル,デプロイ,パース,メモ,ルーティング,図解,外部キー,外部キー制約,外部キー嫌い,多対多,時間,環境変数," />
+
+
+
+  <meta name="twitter:card" content="summary"/>
+
+
+
+<meta name="twitter:text:title" content="railsに外部キー制約を追加してみた"/>
+<meta name="twitter:title" content="railsに外部キー制約を追加してみた"/>
+<meta name="twitter:description" content="データベースに関して調べることって、業務的な側面から、わかりづらい単語や言葉ばっかり使って理解しづらいよね。 誰でも分かるように説明するのがプロなんだよなぁ。。。。まぁいいか。
+プログラミングそのものに関してはそうでもないんだけどな。なので身近にあるもので例えてみる。
+外部キー(foreign key)とは  リレーショナルデータベース(RDB)で、テーブルのある列に、別のテーブルの特定の列に含まれる項目しか入力できないようにする制約。また、その際に指定する列。
+ 参考: e-words.jp
+うん言葉で言ってもわかりづらいｗ
+図で表してみる。
+ この左側の赤いやつが外部キー。別のテーブルの主キーを指してるでしょ？また、別のテーブルの主キーは参照キーと呼ばれる。
+外部キーの問題って？ じゃあもし外部キーの参照先が更新されたり、削除されたらどうなるか。
+animeテーブルのid = 2からid = 5に更新してみる。
+ anime_id = 2の状態ではあるけど、指している場所にデータがない。どこ指してるかわからない。
+参照整合性が取れない。いわゆる迷子レコードになる。
+なぜ外部キー制約を使うか じゃあこれをどうするかというと、以下の2通りの方法を行う。
+ アプリ側で監視する 外部キー制約を使う  普通は1を使うんだけど、1にも以下の問題点がある。
+ スクリプトを全ての参照に対して行う必要がある チェックを毎日、何回も実行しなければならない 参照が壊れていた場合でも修正できるかはわからない  この位の小さいテーブルだったらスクリプトでもいいけど、親、子、孫&hellip;と何個も組み合わさっているとチェックできるかは怪しい。
+そこで2の手法、外部キー制約を使う。
+ちなみに、これはオライリーのSQLアンチパターンに外部キー嫌いって項目で書いてある。
+
+この本、結構面白くてSQLでダメなことが一通り書いてある。 DB設計時にこれどうすればいいんだろうってのが結構解決する。俺でも分かったから、初心者でもわかりやすいと思う。 特にパスの閉包テーブルとポリモーフィックの単一テーブル継承(Single Table Inheritance、通称STI)にはお世話になりました。
+外部キー制約の種類 外部キー制約は更新時(UPDATE ON)と削除時(DELETE ON)にそれぞれ設定できる。
+外部キー制約は主に4種類。
+ NO ACTION RESTRICT CASCADE SET NULL  SET DEFAULTとかもあるけど、今回は割愛。NO ACTIONとRESTRICTは同じ。
+RESTRICT (NO ACTION)  子が外部キーを持っていた場合、その親の操作をさせなくする。
+CASCADE  子が外部キーを持っていた場合、その親が更新や削除したら、子もそれに追従する。"/>
+
+
+
+    </head>
+<body>
+    <nav class="main-nav">
+	
+		<a href='https://b.pyar.bz/'> <span class="arrow">←</span>Home</a>
+	
+
+	
+
+	
+		<a class="cta" href="https://b.pyar.bz/index.xml">Subscribe</a>
+	
+</nav>
+
+    <section id="wrapper">
+        
+        
+<article class="post">
+    <header>
+        <h1>railsに外部キー制約を追加してみた</h1>
+        <h2 class="headline">
+        October 21, 2014
+        <br>
+        
+        
+            
+                <a href="https://b.pyar.bz/tags/rails">rails</a>
+            
+                <a href="https://b.pyar.bz/tags/rails4">rails4</a>
+            
+                <a href="https://b.pyar.bz/tags/foreigner">foreigner</a>
+            
+                <a href="https://b.pyar.bz/tags/%E5%A4%96%E9%83%A8%E3%82%AD%E3%83%BC">外部キー</a>
+            
+                <a href="https://b.pyar.bz/tags/%E5%A4%96%E9%83%A8%E3%82%AD%E3%83%BC%E5%88%B6%E7%B4%84">外部キー制約</a>
+            
+                <a href="https://b.pyar.bz/tags/%E5%A4%96%E9%83%A8%E3%82%AD%E3%83%BC%E5%AB%8C%E3%81%84">外部キー嫌い</a>
+            
+                <a href="https://b.pyar.bz/tags/%E3%82%AA%E3%83%A9%E3%82%A4%E3%83%AA%E3%83%BC">オライリー</a>
+            
+                <a href="https://b.pyar.bz/tags/oreilly">oreilly</a>
+            
+                <a href="https://b.pyar.bz/tags/%E5%9B%B3%E8%A7%A3">図解</a>
+            
+        
+        
+        </h2>
+    </header>
+    <section id="post-body">
+        
+
+<p>データベースに関して調べることって、業務的な側面から、わかりづらい単語や言葉ばっかり使って理解しづらいよね。
+誰でも分かるように説明するのがプロなんだよなぁ。。。。まぁいいか。</p>
+
+<p>プログラミングそのものに関してはそうでもないんだけどな。なので身近にあるもので例えてみる。</p>
+
+<h2 id="外部キー-foreign-key-とは">外部キー(foreign key)とは</h2>
+
+<blockquote>
+<p>リレーショナルデータベース(RDB)で、テーブルのある列に、別のテーブルの特定の列に含まれる項目しか入力できないようにする制約。また、その際に指定する列。</p>
+</blockquote>
+
+<p>参考: <a href="http://e-words.jp/w/E5A496E983A8E382ADE383BC.html">e-words.jp</a></p>
+
+<p>うん言葉で言ってもわかりづらいｗ</p>
+
+<p>図で表してみる。</p>
+
+<div><img width="100%" src="https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/anime2.png"></div>
+
+<p>この左側の赤いやつが<code>外部キー</code>。別のテーブルの主キーを指してるでしょ？また、別のテーブルの主キーは<code>参照キー</code>と呼ばれる。</p>
+
+<h2 id="外部キーの問題って">外部キーの問題って？</h2>
+
+<p>じゃあもし外部キーの参照先が更新されたり、削除されたらどうなるか。</p>
+
+<p>animeテーブルの<code>id = 2</code>から<code>id = 5</code>に更新してみる。</p>
+
+<div><img width="100%" src="https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/anime3.png"></div>
+
+<p><code>anime_id = 2</code>の状態ではあるけど、指している場所にデータがない。どこ指してるかわからない。</p>
+
+<p>参照整合性が取れない。いわゆる<code>迷子レコード</code>になる。</p>
+
+<h2 id="なぜ外部キー制約を使うか">なぜ外部キー制約を使うか</h2>
+
+<p>じゃあこれをどうするかというと、以下の2通りの方法を行う。</p>
+
+<ol>
+<li>アプリ側で監視する</li>
+<li><code>外部キー制約</code>を使う</li>
+</ol>
+
+<p>普通は1を使うんだけど、1にも以下の問題点がある。</p>
+
+<ul>
+<li>スクリプトを全ての参照に対して行う必要がある</li>
+<li>チェックを毎日、何回も実行しなければならない</li>
+<li>参照が壊れていた場合でも修正できるかはわからない</li>
+</ul>
+
+<p>この位の小さいテーブルだったらスクリプトでもいいけど、親、子、孫&hellip;と何個も組み合わさっているとチェックできるかは怪しい。</p>
+
+<p>そこで2の手法、<code>外部キー制約</code>を使う。</p>
+
+<p>ちなみに、これはオライリーの<code>SQLアンチパターン</code>に<code>外部キー嫌い</code>って項目で書いてある。</p>
+
+<p><a href="http://www.amazon.co.jp/gp/product/4873115892/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&camp=247&creative=1211&creativeASIN=4873115892&linkCode=as2&tag=pyar6329-22"><img width="50%" src="https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/sql_anch.jpg"></a></p>
+
+<p>この本、結構面白くてSQLでダメなことが一通り書いてある。
+DB設計時にこれどうすればいいんだろうってのが結構解決する。俺でも分かったから、初心者でもわかりやすいと思う。
+特にパスの<code>閉包テーブル</code>とポリモーフィックの<code>単一テーブル継承(Single Table Inheritance、通称STI)</code>にはお世話になりました。</p>
+
+<h2 id="外部キー制約の種類">外部キー制約の種類</h2>
+
+<p>外部キー制約は更新時(<code>UPDATE ON</code>)と削除時(<code>DELETE ON</code>)にそれぞれ設定できる。</p>
+
+<p>外部キー制約は主に4種類。</p>
+
+<ul>
+<li>NO ACTION</li>
+<li>RESTRICT</li>
+<li>CASCADE</li>
+<li>SET NULL</li>
+</ul>
+
+<p>SET DEFAULTとかもあるけど、今回は割愛。<code>NO ACTION</code>と<code>RESTRICT</code>は同じ。</p>
+
+<h3 id="restrict-no-action">RESTRICT (NO ACTION)</h3>
+
+<div><img width="100%" src="https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/restrict.png"></div>
+
+<p>子が外部キーを持っていた場合、その親の操作をさせなくする。</p>
+
+<h3 id="cascade">CASCADE</h3>
+
+<div><img width="100%" src="https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/cascade.png"></div>
+
+<p>子が外部キーを持っていた場合、その親が更新や削除したら、子もそれに追従する。</p>
+
+<h3 id="set-null">SET NULL</h3>
+
+<div><img width="100%" src="https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/null.png"></div>
+
+<p>子が外部キーを持っていた場合、その親が更新や削除したら、子にnullを代入する。</p>
+
+<h3 id="railsではどうなの">Railsではどうなの？</h3>
+
+<p>RailsはActiveRecord経由で操作、つまりmodelに書く。</p>
+
+<pre><code>class User &lt; ActiveRecord::Base
+  has_one :animes, :class_name =&gt; 'Anime', :dependent =&gt; :destroyend
+</code></pre>
+
+<p>基本的には、<code>:dependent =&gt; 制約名</code>を追加するだけでいい。</p>
+
+<p>でもこれは<strong>ActiveRecord経由で操作するものだけにしか効果が無い</strong></p>
+
+<p>つまり<code>user1.destroy</code>とかでは効いても<code>user1.delete</code>では効かない。</p>
+
+<p>RailsはDB自体には制約ができない。なのでそれに対応するgem(<code>foreigner</code>)を入れる必要がある。</p>
+
+<h2 id="gemの導入">Gemの導入</h2>
+
+<p><code>Gemfile</code>に<code>foreigner</code>を追加。</p>
+
+<pre><code>gem 'foreigner'
+</code></pre>
+
+<h2 id="実際に例で作成してみる">実際に例で作成してみる</h2>
+
+<p>今回は次のようなテーブルの場合を考える。</p>
+
+<div><img width="80%" src="https://dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/foreigner/foreigner-pc.png"></div>
+
+<p>usersテーブルにユーザー名、filesテーブルにファイル名。この2つが親。</p>
+
+<p>playsテーブルが、どのユーザーが何のファイルを再生したかをカウントする、というもの。これが子。</p>
+
+<p>playのロー(行データ)はusersテーブルとfilesテーブルに依存している。</p>
+
+<p>親のロー(行データ)が更新したら子も更新し、削除されたら子も削除する。</p>
+
+<p>モデルの作成は以下のコマンド。</p>
+
+<pre><code>$ rails g model user name:string
+$ rails g model file name:string
+$ rails g play count:integer file:references user:references
+</code></pre>
+
+<p>注意点は、<strong>一度テーブルを作成してから</strong>でないと反映できない。なので別にmigrationファイルを作成する。</p>
+
+<pre><code>$ rails g migration AddForeignKeyToPlays
+</code></pre>
+
+<p><code>AddForeignKeyToPlays</code>の部分は、<code>AddForeignKeyToテーブル名複数形</code>になる。</p>
+
+<p>実際に作成されたmigrationファイルに外部キー制約を記入していく。書き方は3通り。</p>
+
+<h3 id="1-繰り返しを使う">1. 繰り返しを使う</h3>
+
+<pre><code>class AddForeignKeyToPlays &lt; ActiveRecord::Migration
+  def change
+    change_table :plays do |t|
+      t.foreign_key :users, options: 'ON UPDATE CASCADE ON DELETE CASCADE'
+      t.foreign_key :files, options: 'ON UPDATE CASCADE ON DELETE CASCADE'
+    end
+  end
+end
+</code></pre>
+
+<p>1.の場合、
+<code>t.foreign_key :users, options:</code>とあるが、</p>
+
+<p><code>t.foreign_key :親のテーブル名複数形, options: '付与するSQL制約'</code>のように書く。</p>
+
+<h3 id="2-メソッドを使う">2. メソッドを使う</h3>
+
+<pre><code>class AddForeignKeyToPlays &lt; ActiveRecord::Migration
+  def change
+    add_foreign_key(:plays, :users, options: 'ON UPDATE CASCADE ON DELETE CASCADE')
+    add_foreign_key(:plays, :files, options: 'ON UPDATE CASCADE ON DELETE CASCADE')
+  end
+end
+</code></pre>
+
+<p>2.の場合、
+<code>add_foreign_key(:plays, :users, options: 'ON UPDATE CASCADE ON DELETE CASCADE')</code>とあるが、</p>
+
+<p><code>add_foreign_key(:子のテーブル名複数形, :親のテーブル名複数形, options: '付与するSQL制約')</code>のように書く。</p>
+
+<h3 id="3-メソッド-括弧なし-を使う">3. メソッド(括弧なし)を使う</h3>
+
+<pre><code>class AddForeignKeyToPlays &lt; ActiveRecord::Migration
+  def change
+    add_foreign_key :plays, :users, options: 'ON UPDATE CASCADE ON DELETE CASCADE'
+    add_foreign_key :plays, :files, options: 'ON UPDATE CASCADE ON DELETE CASCADE'
+  end
+end
+</code></pre>
+
+<p>3.の場合は2の括弧を外しただけ。</p>
+
+<p><code>付与するSQL制約</code>は、SQLによって効果が違う。
+postgresqlの場合だと、以下の表通り。</p>
+
+<table>
+<thead>
+<tr>
+<th align="left">種類</th>
+<th align="left">更新時(ON UPDATE)の効果</th>
+<th align="left">削除時(ON DELETE)の効果</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="left">NO ACTION</td>
+<td align="left">規定値。親が更新できない。</td>
+<td align="left">規定値。親が削除できない。</td>
+</tr>
+
+<tr>
+<td align="left">RESTRICT</td>
+<td align="left">NO ACTIONと同じだが、制約の検査を遅らせられない</td>
+<td align="left">NO ACTIONと同じだが、制約の検査を遅らせられない</td>
+</tr>
+
+<tr>
+<td align="left">CASCADE</td>
+<td align="left">親に合わせて子も更新</td>
+<td align="left">親に合わせて子も削除</td>
+</tr>
+
+<tr>
+<td align="left">SET NULL</td>
+<td align="left">null値を代入</td>
+<td align="left">null値を代入</td>
+</tr>
+
+<tr>
+<td align="left">SET DEFAULT</td>
+<td align="left">自分で決めた規定値にする</td>
+<td align="left">自分で決めた規定値にする</td>
+</tr>
+</tbody>
+</table>
+
+<p>なので<code>ON UPDATE CASCADE ON DELETE CASCADE</code>だと、更新時も終了時も親に合わせて更新、削除になる。</p>
+
+    </section>
+</article>
+
+<footer id="post-meta" class="clearfix">
+    
+    <img class="avatar" src="https://b.pyar.bz/images/avatar.png">
+    <div>
+        <span class="dark">@pyar6329</span>
+        <span>I&#39;m programmer.</span>
+    </div>
+    
+    <section id="sharing">
+        <a class="twitter" href="https://twitter.com/intent/tweet?text=https%3a%2f%2fb.pyar.bz%2f20141021%2fforeigner - rails%e3%81%ab%e5%a4%96%e9%83%a8%e3%82%ad%e3%83%bc%e5%88%b6%e7%b4%84%e3%82%92%e8%bf%bd%e5%8a%a0%e3%81%97%e3%81%a6%e3%81%bf%e3%81%9f "><span class="icon-twitter"> tweet</span></a>
+
+<a class="facebook" href="#" onclick="
+    window.open(
+      'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+      'facebook-share-dialog',
+      'width=626,height=436');
+    return false;"><span class="icon-facebook-rect"> Share</span>
+</a>
+
+    </section>
+</footer>
+
+
+
+<ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="https://b.pyar.bz/20170608/api-uri">APIのURIを短くする<aside class="dates">Jun 8 2017</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20170324/ipv6">あなたのお家の光回線速度を上げる方法<aside class="dates">Mar 24 2017</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20160628/redis-keys">redisのkeyについて調べてみた<aside class="dates">Jun 28 2016</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141027/rails-timezone">RailsでのtimezoneをUTCにする<aside class="dates">Oct 27 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141023/has-one">has-oneが動作しなかったのでclass_nameを追加した<aside class="dates">Oct 23 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/mac-postgresql-installation">macでPostgreSQLをインストールする<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/migrate-command">migrateコマンドを省略する<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141021/rake-db-migrate">railsで動作モードを変更する<aside class="dates">Oct 21 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141016/many-to-many-table">railsで多対多のテーブルを実装する<aside class="dates">Oct 16 2014</aside></a>
+        </li>
+    
+        <li>
+            <a href="https://b.pyar.bz/20141016/model">railsのmodelについて調べてみた<aside class="dates">Oct 16 2014</aside></a>
+        </li>
+    
+</ul>
+
+
+
+        <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://www.github.com/pyar6329">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+        © Copyright 2017 @pyar6329
+    
+    </p>
+</footer>
+
+    </section>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://b.pyar.bz/js/main.js"></script>
+<script src="https://b.pyar.bz/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-47263119-3', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+</body>
+</html>

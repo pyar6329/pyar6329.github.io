@@ -1,0 +1,545 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ip on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/ip/index.xml</link>
+    <description>Recent content in Ip on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/ip/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>あなたのお家の光回線速度を上げる方法</title>
+      <link>https://b.pyar.bz/20170324/ipv6</link>
+      <pubDate>Fri, 24 Mar 2017 00:19:00 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20170324/ipv6</guid>
+      <description>
+
+&lt;h2 id=&#34;目次&#34;&gt;目次&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ネットワークの基礎知識&lt;/li&gt;
+&lt;li&gt;回線速度の測定方法&lt;/li&gt;
+&lt;li&gt;回線速度が遅い原因を特定する&lt;/li&gt;
+&lt;li&gt;なぜ遅いのか&lt;/li&gt;
+&lt;li&gt;遅くなった原因&lt;/li&gt;
+&lt;li&gt;どうすれば速くなるか&lt;/li&gt;
+&lt;li&gt;IPv6+ IPoEを使う&lt;/li&gt;
+&lt;li&gt;使われている事例&lt;/li&gt;
+&lt;li&gt;実際にどうすればいいか&lt;/li&gt;
+&lt;li&gt;結論&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;ネットワークの基礎知識&#34;&gt;ネットワークの基礎知識&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/000_network.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ONU(光回線終端装置、モデム)
+
+&lt;ul&gt;
+&lt;li&gt;光信号とデジタル信号を変換するもの&lt;/li&gt;
+&lt;li&gt;ルータと一体型になってるものもある&lt;/li&gt;
+&lt;li&gt;壁に埋め込まれているものもある&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;ルータ
+
+&lt;ul&gt;
+&lt;li&gt;普通1ネットワークに対し1台しか接続出来ないが、複数台接続できるようにするもの&lt;/li&gt;
+&lt;li&gt;PPPoEやNAT、DHCPなどがある&lt;/li&gt;
+&lt;li&gt;ONUと一体型のものもある&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;PPPoE
+
+&lt;ul&gt;
+&lt;li&gt;プロバイダと接続するための認証&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;NAT
+
+&lt;ul&gt;
+&lt;li&gt;外部ネットワークと内部ネットワークのIPアドレスを変換するもの&lt;/li&gt;
+&lt;li&gt;内部で外部ネットワークのIPとは別のIPを割り振ることで、IP枯渇問題を解決した&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;DHCP
+
+&lt;ul&gt;
+&lt;li&gt;IPアドレスを自動的に割り振るもの&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;回線速度の測定方法&#34;&gt;回線速度の測定方法&lt;/h2&gt;
+
+&lt;p&gt;speed testのサイトを使い、昼と夜(18:00頃)の速度を計測する
+速度計測サイトのサーバが遠いと結果も遅くなるので、できるだけ国内のテストサービスをつかう
+以下がよく使われる計測サイト。別に他のサイトでもいい&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.usen.com/speedtest02/&#34;&gt;USEN&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.musen-lan.com/speed/&#34;&gt;BNR&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;基本的に、昼は速く、夜は遅い&lt;/p&gt;
+
+&lt;p&gt;測定結果が100Mbps契約の場合、20Mbps以上出ていなかったら遅い&lt;/p&gt;
+
+&lt;p&gt;また、&lt;a href=&#34;http://netspeed.studio-radish.com/cgi-bin/netspeed/openresult/openresult.cgi&#34;&gt;自分の住んでいる地区の速度と比較してみる&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;上記のspeed testをして、速度が遅いかどうかを判断する&lt;/p&gt;
+
+&lt;p&gt;ちなみに自分の家の場合(フレッツ光ネクストマンションタイプ、 so-net 100Mbps契約、PC直繋ぎ有線LAN)&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/001_low_speed.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://ja.wikipedia.org/wiki/ベストエフォート&#34;&gt;ベストエフォート&lt;/a&gt;とはいえ、452.23Kbps(= 0.45Mbps)&amp;hellip;あれ1/200以下？&lt;/p&gt;
+
+&lt;p&gt;この速度は、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=hzHOzAHENzk&#34;&gt;画像が昔みたく表示される&lt;/a&gt;場合がある&lt;/li&gt;
+&lt;li&gt;画像がダウンロードされない&lt;/li&gt;
+&lt;li&gt;ゲームなんて画像ないようなもの&lt;/li&gt;
+&lt;li&gt;git cloneがタイムアウトする&lt;/li&gt;
+&lt;li&gt;今のスマホテザリング(LTE)でも、20Mbpsは行く&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;回線速度が遅い原因を特定する&#34;&gt;回線速度が遅い原因を特定する&lt;/h2&gt;
+
+&lt;p&gt;speed test後、速度が遅いとわかったら原因を特定していく&lt;/p&gt;
+
+&lt;p&gt;まず有線LAN接続なのか、無線LAN接続なのかを判断する&lt;/p&gt;
+
+&lt;p&gt;無線LAN接続の場合は、有線LANで速度を再び計測する。
+ここで速度が向上したらルータの無線LANの部分が原因。11ac対応のルータ(asus, tp-link, NEC等)を買うべき。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/002_no_wifi.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;有線LANで速度が遅いと思ったら、今度はルータを外してPCとONU(光回線終端装置、モデム)を直繋ぎして測定する。
+ここで速度が向上したらルータの有線LANの部分、ケーブル、もしくはPCのLANが古いのが原因。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ルータは1000BASE-T(=1000Mbps)対応のもの(airmac expressとかは100BASE-Tなので遅い)&lt;/li&gt;
+&lt;li&gt;LANケーブルはcat5e もしくは cat6のものを買う。cat7は無駄だから買わないほうがいい。&lt;/li&gt;
+&lt;li&gt;PC側も1000BASE-T対応のものにする(大体は対応している)。USBで有線LANにしている場合は、USB3のものやThunderboltのものにする。
+
+&lt;ul&gt;
+&lt;li&gt;速度は Thunderbolt &amp;gt; USB3 &amp;gt;&amp;gt;&amp;gt; USB2(これだけ100BASE-T)&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/003_no_router.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;それでも速度が遅い場合は、プロバイダを介さない速度テスト(フレッツ光のNGNテスト)をしてみる。&lt;/p&gt;
+
+&lt;p&gt;c.f. &lt;a href=&#34;https://flets.com/next/square/connectv4/win/&#34;&gt;NGNテストのサイトの使い方&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/004_ngn_test.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;ONUとPCを直繋ぎし、PC側でPPPoEでNTTを指定する&lt;/p&gt;
+
+&lt;p&gt;macの場合、以下のようになる&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/005_create_pppoe.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;左下の &lt;code&gt;+&lt;/code&gt; を押し、PPPoEを作成する&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/006_config_pppoe.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;アカウント名とパスワードを以下の表のように入力する&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;項目&lt;/th&gt;
+&lt;th&gt;設定内容&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;認証方式&lt;/td&gt;
+&lt;td&gt;PPPoE&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;プロバイダ名&lt;/td&gt;
+&lt;td&gt;任意(なんでもいい、無くても可)&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;ユーザー名&lt;/td&gt;
+&lt;td&gt;guest@v4flets-east.jp&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;パスワード&lt;/td&gt;
+&lt;td&gt;guest&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;IPアドレス&lt;/td&gt;
+&lt;td&gt;自動&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;DNS&lt;/td&gt;
+&lt;td&gt;自動&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;その後、以下のURLにアクセスすることでテストできる&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.v4flets-east.jp&#34;&gt;http://www.v4flets-east.jp&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;自分の家の場合は、ほぼ契約通りの理論値(100Mbps)が出た&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/007_ngn_test_result.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;ここでも回線が遅い場合は、ONUが古い、壊れている、もしくは光回線の配線が劣化している可能性があるので、NTTに連絡する&lt;/p&gt;
+
+&lt;h2 id=&#34;なぜ遅いのか&#34;&gt;なぜ遅いのか&lt;/h2&gt;
+
+&lt;p&gt;ここで振り返ってみる。&lt;/p&gt;
+
+&lt;p&gt;自分の環境での測定結果は以下の通りだった&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ONUは壁の中&lt;/li&gt;
+&lt;li&gt;ONUとPCは直繋ぎ&lt;/li&gt;
+&lt;li&gt;PCは2台で試したが結果は同じ&lt;/li&gt;
+&lt;li&gt;PCは1000BASE-T対応&lt;/li&gt;
+&lt;li&gt;ケーブルはcat 6&lt;/li&gt;
+&lt;li&gt;複数のケーブルで試しても結果は同じ&lt;/li&gt;
+&lt;li&gt;測定結果は0.5Mbps&lt;/li&gt;
+&lt;li&gt;別の計測サイトでも1Mbps位&lt;/li&gt;
+&lt;li&gt;NTT NGNの測定結果は99Mbpsでほぼ理論値通り&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;となると、以下のことが推測できる&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;PCは問題ない&lt;/li&gt;
+&lt;li&gt;ルータも問題ない&lt;/li&gt;
+&lt;li&gt;ONUも問題ない&lt;/li&gt;
+&lt;li&gt;ケーブルも問題ない&lt;/li&gt;
+&lt;li&gt;NTTの(物理的な)回線も問題ない&lt;/li&gt;
+&lt;li&gt;プロバイダが悪い&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/008_provider_error.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;遅くなった原因&#34;&gt;遅くなった原因&lt;/h2&gt;
+
+&lt;p&gt;なぜプロバイダが遅いのか、プロバイダに電話してみる。&lt;/p&gt;
+
+&lt;p&gt;測定結果とtracerouteの結果の値をzipで送ったり色々あって…&lt;/p&gt;
+
+&lt;p&gt;PPPoE認証サーバの終端、集約装置が混んでいることがわかった。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/009_poi.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;しかも&lt;a href=&#34;http://www2.softether.jp/jp/ethernext/overview/&#34;&gt;PPPoEサーバの管轄はプロバイダでは無くNTT&lt;/a&gt;
+プロバイダはNTTに増強をお願いするしかできない。
+しかしNTTも闇雲に増設は出来るわけがなく(コストとか)、プロバイダのユーザー数が一定数を超えないと増強しない。(増設例: &lt;a href=&#34;https://www.so-net.ne.jp/info/2016/sp20160310_0007.html&#34;&gt;so-net&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/010_ntt_error.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;じゃあなぜPPPoEが混んでいるか。これはある法律が関係している&lt;/p&gt;
+
+&lt;h3 id=&#34;2014年まで&#34;&gt;~ 2014年まで&lt;/h3&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;NTTのフレッツ光は2014年3月末の東西合計の加入件数が1,805万件で、FTTH市場におけるシェアは合わせて71.1%。2013年3月末から1.5ポイント減少した。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;c.f. &lt;a href=&#34;https://www.m2ri.jp/news/detail.html?id=107&#34;&gt;MM総研: ブロードバンド回線事業者の加入件数調査（2014年3月末時点）&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;光回線は高かった。プロバイダ料込みで6000円前後
+そして加入ユーザー数は減っていた&lt;/p&gt;
+
+&lt;h3 id=&#34;2015年-風向きが変わる&#34;&gt;2015年、風向きが変わる&lt;/h3&gt;
+
+&lt;p&gt;2015年、NTT法(日本電信電話株式会社等に関する法律)が改正される。&lt;/p&gt;
+
+&lt;p&gt;NTTは元国営企業であり、NTT法(第30条第2, 3項)で &lt;strong&gt;NTT東西とドコモは一体的な営業が出来ない&lt;/strong&gt; という規制を受けていた。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;2: その電気通信業務について、特定の電気通信事業者に対し、不当に優先的な取扱いをし、若しくは利益を与え、又は不当に不利な取扱いをし、若しくは不利益を与えること。
+3: 他の電気通信事業者（第百六十四条第一項各号に掲げる電気通信事業を営む者を含む。）又は電気通信設備の製造業者若しくは販売業者に対し、その業務について、不当に規律をし、又は干渉をすること。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;c.f. &lt;a href=&#34;https://dsk.or.jp/dskwiki/index.php?電気通信事業法第30条&#34;&gt;情報通信復興会: 電気通信事業法第30条&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;これが以下のように緩和される&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;2: 禁止の対象が「グループ会社に対する優遇」のみに限定
+3: 廃止&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;c.f. &lt;a href=&#34;http://www.foresight-law.gr.jp/column/backnumber/170101.html&#34;&gt;フォーサイト総合法律事務所: ICT・IoTビジネスと電気通信事業法等の一部改正について&lt;/a&gt;
+c.f. &lt;a href=&#34;http://k-tai.watch.impress.co.jp/docs/interview/639666.html&#34;&gt;総務省が進める「競争政策見直し」とは何か&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;NTTはセット販売ができるようになり、 &lt;strong&gt;docomo光&lt;/strong&gt; が解禁された。&lt;/p&gt;
+
+&lt;p&gt;docomo光は以下の特徴を持つ&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;スマホのパケットし放題の料金をセットにすることで、1台辺り500~2000円割引できる
+
+&lt;ul&gt;
+&lt;li&gt;家族で契約してる人は大幅な割引&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;docomoショップで契約できる&lt;/li&gt;
+&lt;li&gt;今までLTEだった人がwifiになったら速度は速くなる(実際は遅いんだけども)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;つまりdocomoユーザーに対し、抱き合わせで光回線を販売することでユーザー数が増えた&lt;/p&gt;
+
+&lt;p&gt;実際にどの位ユーザー数が増加したかというと、&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;2015年12月: 契約数100万件突破
+2016年6月: 契約数200万件突破
+2017年1月: 契約数300万件突破&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/011_docomo.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;c.f. &lt;a href=&#34;https://nuro光実測と評判.jp/fletshikari-osoi-hyouban/&#34;&gt;実際の速度は800M以上！ NURO光の実測や評判は？: フレッツ光 2016年 急激に遅い評判増える その原因は？&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;docomo光でいかにユーザー数が増加したかが分かる&lt;/p&gt;
+
+&lt;p&gt;このユーザー数増加に対し、PPPoEサーバの増強が追いついていない。&lt;/p&gt;
+
+&lt;p&gt;そして様々なプロバイダのPPPoEサーバは全てNTT管轄のビル内(POI)にある
+= docomoユーザーのPPPoE処理の影響が他プロバイダのPPPoE処理に影響を与える
+= プロバイダを変えても意味がない&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/012_provier_non.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;どうすれば速くなるか&#34;&gt;どうすれば速くなるか&lt;/h2&gt;
+
+&lt;p&gt;じゃあどうすればいいか。
+要はPPPoEサーバを経由しなければいい。&lt;/p&gt;
+
+&lt;p&gt;それが出来る選択肢は以下の2つのみ&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;NNTのPPPoEサーバを迂回しないプロバイダと契約する
+
+&lt;ul&gt;
+&lt;li&gt;au光
+
+&lt;ul&gt;
+&lt;li&gt;KDDIの回線を利用したサービス&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.spaaqs.ne.jp/&#34;&gt;U-NEXT光01(spaaqs光)&lt;/a&gt;
+
+&lt;ul&gt;
+&lt;li&gt;UCOMの独自回線を利用したサービス&lt;/li&gt;
+&lt;li&gt;政令指定都市の特定のマンションじゃないと無理&lt;/li&gt;
+&lt;li&gt;U-NEXT光コラボレーションはダメ&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;nuro光
+
+&lt;ul&gt;
+&lt;li&gt;NTTの回線だけど、PPPoEなどは独自網&lt;/li&gt;
+&lt;li&gt;8階建てのマンションだと契約者数4人を超えないと無理&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;IPv6 + IPoEを使う
+
+&lt;ul&gt;
+&lt;li&gt;次項で解説&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;ちなみに、上記以外の1Gbpsのプロバイダで契約したとしても、PPPoEを経由したものは今は良くてもその内同じ問題に当たる&lt;/p&gt;
+
+&lt;h2 id=&#34;ipv6-ipoeを使う&#34;&gt;IPv6+ IPoEを使う&lt;/h2&gt;
+
+&lt;h3 id=&#34;ipv6&#34;&gt;IPv6&lt;/h3&gt;
+
+&lt;p&gt;IPv6とはIPv4のIP枯渇問題を解決するために規定されたプロトコル&lt;/p&gt;
+
+&lt;p&gt;詳細は&lt;a href=&#34;https://ja.wikipedia.org/wiki/IPv6&#34;&gt;wikipedia&lt;/a&gt;等で参考にするとして、特徴を上げると&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;事実上無限のIPアドレス&lt;/li&gt;
+&lt;li&gt;IPv4と互換性がない&lt;/li&gt;
+&lt;li&gt;NATを使わないで端末同士が直接繋がる&lt;/li&gt;
+&lt;li&gt;IPsecで通信が暗号化される&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;今までは、Webアプリ(apache)やDNS、サーバ側もIPv6に対応しないと接続できなかったので普及していなかった
+枯渇問題も、NATを使えば解決できるし…&lt;/p&gt;
+
+&lt;p&gt;2015年docomo光以降NTTはNGN(Next Generation Network)、次世代ネットワークに切り替えていく方式(フレッツ光ネクスト)を提供し始めた&lt;/p&gt;
+
+&lt;p&gt;これは先程のPPPoEの速度遅いという問題を抱えているが、そのかわりにIPv6を(普及させるため) &lt;strong&gt;無料で&lt;/strong&gt; 提供してくれる&lt;/p&gt;
+
+&lt;p&gt;が、このままでは既存のサービスを見ることができない&lt;/p&gt;
+
+&lt;p&gt;そこでDS-Liteという規格が登場した&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/013_ds_lite.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;ds-lite&#34;&gt;DS-Lite&lt;/h3&gt;
+
+&lt;p&gt;DS-lite(Dual-Stack Lite)とは、RFC6333で規定された通信規格で、IPv6でカプセル化し、その中でIPv4の通信ができる(IPv4 over IPv6)
+しかも、&lt;strong&gt;通信速度はIPv6のネットワーク速度&lt;/strong&gt;になる&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/014_ds_lite_describe.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;これにより、IPv6非対応の既存のwebサイトを閲覧することができる&lt;/p&gt;
+
+&lt;p&gt;c.f &lt;a href=&#34;http://techlog.iij.ad.jp/archives/1254&#34;&gt;DS-LiteでIPv4してみませんか？&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;ipoe&#34;&gt;IPoE&lt;/h3&gt;
+
+&lt;p&gt;話を戻して、速度が遅いのはPPPoEが原因だった
+IPv6も最初はPPPoEで接続していた(IPv6 トンネル方式)&lt;/p&gt;
+
+&lt;p&gt;しかし新しい方式、IPoE(IPv6 ネイティブ方式)が登場した&lt;/p&gt;
+
+&lt;p&gt;IPoEとは IP over Ethernet(ネイティブ方式)の略で、&lt;strong&gt;PPPoEを経由しない&lt;/strong&gt;
+しかも速度制限はPPPoEでしているので、1Gbps契約じゃなくても1Gbpsが出る可能性がある(200Mbps契約など)&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/015_ipoe.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;代わりにVNE(Virtual Network Enabler)と呼ばれる、ネイティブ接続事業者(上位プロバイダ)が既存のプロバイダに変わってIPv6で接続する&lt;/p&gt;
+
+&lt;p&gt;このVNEはとても少なく、以下しかいない&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;mfeed(インターネットマルチフィード)&lt;/li&gt;
+&lt;li&gt;JPNE(日本ネットワークイネイブラー)&lt;/li&gt;
+&lt;li&gt;BBIX&lt;/li&gt;
+&lt;li&gt;ビッグローブ株式会社(BIGLOBE)&lt;/li&gt;
+&lt;li&gt;株式会社朝日ネット(ASAHI ネット)&lt;/li&gt;
+&lt;li&gt;NTT コミュニケーションズ&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;既存のプロバイダでIPv6を利用する場合、以下のようにVNEに移譲している&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;プロバイダ&lt;/th&gt;
+&lt;th&gt;VNE&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;IIJmio&lt;/td&gt;
+&lt;td&gt;mfeed&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;GMO とくとく BB&lt;/td&gt;
+&lt;td&gt;JPNE&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;21IP&lt;/td&gt;
+&lt;td&gt;JPNE&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;Yahoo! BB&lt;/td&gt;
+&lt;td&gt;BBIX&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;BIGLOBE&lt;/td&gt;
+&lt;td&gt;BIGLOBE&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;ASAHI ネット&lt;/td&gt;
+&lt;td&gt;ASAHI ネット&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;NTTCom(OCN)&lt;/td&gt;
+&lt;td&gt;NTTCom(OCN)&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;ドコモ net&lt;/td&gt;
+&lt;td&gt;mfeed&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;So-net&lt;/td&gt;
+&lt;td&gt;mfeed&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;なので、IPv6でも速度が遅い場合は、違うVNEなプロバイダに切り替える必要がある&lt;/p&gt;
+
+&lt;p&gt;c.f. &lt;a href=&#34;http://qiita.com/soprano1125/items/65295cd8c371abc6ebe8&#34;&gt;IPv6 IPoE に思いを馳せながら ISP をどうやって選定するか考える話&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;使われている事例&#34;&gt;使われている事例&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.slideshare.net/MasayukiKobayashi/545noc&#34;&gt;PyConJP 2014年&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;実際にどうすればいいか&#34;&gt;実際にどうすればいいか&lt;/h2&gt;
+
+&lt;h3 id=&#34;ipv6にする&#34;&gt;IPv6にする&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;プロバイダにIPv6を提供しているか電話で確認し、申請する
+
+&lt;ul&gt;
+&lt;li&gt;その時、ONUも対応しているか確認してくれる&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;NTTでフレッツ・v6オプションを申し込む
+
+&lt;ul&gt;
+&lt;li&gt;そこでIPv6固定やDDNSを設定もできる&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;ルータと端末(PC, スマホ、タブレット)がIPv6に対応しているものを使う&lt;/li&gt;
+&lt;li&gt;ルータは &lt;strong&gt;IPv6 パススルー&lt;/strong&gt; の機能をonにする必要がある&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;ipv6にしたあとの確認&#34;&gt;IPv6にしたあとの確認&lt;/h3&gt;
+
+&lt;p&gt;以下のサイトでIPv6で接続できているか確認できる&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://test-ipv6.com/index.html.ja_JP&#34;&gt;http://test-ipv6.com/index.html.ja_JP&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/016_test_ipv6.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;速度はIPv6対応サイトで確認する&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://speedtest6.iijmio.jp&#34;&gt;http://speedtest6.iijmio.jp&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/017_ipv6_speed.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;海外のサイトでも速度チェックできる&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://ipv6-test.com/speedtest&#34;&gt;http://ipv6-test.com/speedtest&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/018_ipv6_speed2.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;結論&#34;&gt;結論&lt;/h2&gt;
+
+&lt;p&gt;無料なので、IPv6 + IPoEを使おう&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//media.githubusercontent.com/media/pyar6329/blog_images/master/2017/03/24/19-00-ipv6/019_flow.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;参考になるサイト&#34;&gt;参考になるサイト&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://note.chiebukuro.yahoo.co.jp/detail/n322584&#34;&gt;NTTフレッツ光で通信速度及び応答速度を期待できるおすすめISP&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Basic on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/basic/index.xml</link>
+    <description>Recent content in Basic on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/basic/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>railsでjsonをparseする</title>
+      <link>https://b.pyar.bz/20140122/rails-json-parse</link>
+      <pubDate>Wed, 22 Jan 2014 16:45:10 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20140122/rails-json-parse</guid>
+      <description>&lt;p&gt;Gemfileに以下を追加&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;gem &#39;jbuilder&#39;, &#39;~&amp;gt; 1.2&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Controllerにこんな感じで書く&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;json_data = JSON.parse(get_json)
+second_level_items = json_data[&#39;children&#39;].map {|c| c[&#39;child&#39;]}
+second_level_items.each do |item|
+  genre = Genre.find_by_genre_id(item[&#39;genreId&#39;])
+  genre = Genre.new(genre_id: item[&#39;genreId&#39;], name: item[&#39;genreName&#39;]) unless genre
+  genre.save()
+end
+hoge = JSON.parse(hoge)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Viewにこんな感じで書く&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-html&#34;&gt;&amp;lt;%= debug(hoge) %&amp;gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Basic認証付きならこんな感じ&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;begin
+  httpClient.set_auth(&amp;quot;https://kyoto.smartercity.jp/api/v1/places&amp;quot;, &amp;quot;username&amp;quot;, &amp;quot;password&amp;quot;);
+  data = httpClient.get_content(&amp;quot;https://kyoto.smartercity.jp/api/v1/places&amp;quot;, {
+    &amp;quot;rdf_type&amp;quot; =&amp;gt; rdf_types.join(&amp;quot;,&amp;quot;)
+  });
+  @jsonData = JSON.parse data
+  rescue HTTPClient::BadResponseError =&amp;gt; e
+  rescue HTTPClient::TimeoutError =&amp;gt; e
+end
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

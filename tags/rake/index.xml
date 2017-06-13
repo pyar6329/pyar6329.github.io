@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Rake on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/rake/index.xml</link>
+    <description>Recent content in Rake on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/rake/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>migrateコマンドを省略する</title>
+      <link>https://b.pyar.bz/20141021/migrate-command</link>
+      <pubDate>Tue, 21 Oct 2014 20:16:03 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141021/migrate-command</guid>
+      <description>&lt;p&gt;railsでDBに反映するにはmigrateするが、リセットして一からやり直したいことがある。
+その時は普通以下のコマンドを入力する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:drop
+$ rake db:create
+$ rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ただし3回も打つのは面倒臭い。なので一行で打つとこうなる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:drop db:create db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;さらにこれはもっと省略できて、以下のコマンドで実現できる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rake db:migrate:reset
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>railsで動作モードを変更する</title>
+      <link>https://b.pyar.bz/20141021/rake-db-migrate</link>
+      <pubDate>Tue, 21 Oct 2014 17:14:06 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141021/rake-db-migrate</guid>
+      <description>&lt;p&gt;テストモードで動かす&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails s -e test
+$ rake db:migrate Rails_ENV=test
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;実行環境モードで動かす&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rails s -e production
+$ rake db:migrate Rails_ENV=production
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

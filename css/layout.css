@@ -1,0 +1,32 @@
+#wrapper {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 60px 40px 100px 40px;
+}
+
+ul {
+  text-align: left;
+  padding-left: 22px;
+}
+
+ol {
+  text-align: left;
+  padding-left: 18px;
+}
+
+li {
+  list-style-position: outside;
+}
+
+ul li ol {
+  padding-left: 20px;
+}
+
+ol li{
+  list-style-type: decimal;
+}
+
+ul li ul li {
+  list-style-type: circle;
+}
+

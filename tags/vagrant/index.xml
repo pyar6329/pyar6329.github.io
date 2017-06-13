@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Vagrant on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/vagrant/index.xml</link>
+    <description>Recent content in Vagrant on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/vagrant/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>vagrantでよく使うコマンド</title>
+      <link>https://b.pyar.bz/20141016/vagrant-command</link>
+      <pubDate>Thu, 16 Oct 2014 00:00:28 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141016/vagrant-command</guid>
+      <description>
+
+&lt;p&gt;vagrantでよく使うコマンドをまとめてみた。&lt;/p&gt;
+
+&lt;h3 id=&#34;仮想pcを起動&#34;&gt;仮想PCを起動&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;$ vagrant up
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;仮想pcにログイン&#34;&gt;仮想PCにログイン&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;$ vagrant ssh
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;仮想pcをシャットダウン&#34;&gt;仮想PCをシャットダウン&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;$ vagrant halt
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;仮想pcを壊して作りなおす&#34;&gt;仮想PCを壊して作りなおす&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;$ vagrant destroy
+$ vagrant up
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

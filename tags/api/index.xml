@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Api on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/api/index.xml</link>
+    <description>Recent content in Api on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/api/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>APIのURIを短くする</title>
+      <link>https://b.pyar.bz/20170608/api-uri</link>
+      <pubDate>Thu, 08 Jun 2017 00:11:52 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20170608/api-uri</guid>
+      <description>
+
+&lt;p&gt;&lt;a href=&#34;http://amzn.to/2sFDy2E&#34;&gt;Web API: The Good Parts&lt;/a&gt;を読んだのでその整理&lt;/p&gt;
+
+&lt;h1 id=&#34;uriを短くする&#34;&gt;URIを短くする&lt;/h1&gt;
+
+&lt;p&gt;APIのURI設計をしていると、親子関係があるデータを扱う時URIが長くなる&lt;br /&gt;
+例えば&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;blogが複数の記事をもつ&lt;/li&gt;
+&lt;li&gt;記事は複数のコメントを持つ&lt;/li&gt;
+&lt;li&gt;コメントは複数の返信コメントをもつ&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;集合で表すと &lt;code&gt;blogs ∋ articles ∋ comments ∋ replies&lt;/code&gt;&lt;br /&gt;
+railsだと以下のようになる&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ rails routes
+      Prefix Verb   URI Pattern                                                Controller#Action
+     replies GET    /blogs/:id/articles/:id/comments/:id/replies(.:format)     replies#index
+             POST   /blogs/:id/articles/:id/comments/:id/replies(.:format)     replies#create
+       reply GET    /blogs/:id/articles/:id/comments/:id/replies/:id(.:format) replies#show
+             PATCH  /blogs/:id/articles/:id/comments/:id/replies/:id(.:format) replies#update
+             PUT    /blogs/:id/articles/:id/comments/:id/replies/:id(.:format) replies#update
+             DELETE /blogs/:id/articles/:id/comments/:id/replies/:id(.:format) replies#destroy
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;とてもじゃないが、使えたものじゃない…&lt;br /&gt;
+Herokuではどうしているかというと、&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Limit nesting depth by preferring to locate resources at the root path. Use nesting to indicate scoped collections. For example, for the case above where a dyno belongs to an app belongs to an org:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;/orgs/{org_id}
+/orgs/{org_id}/apps
+/apps/{app_id}
+/apps/{app_id}/dynos
+/dynos/{dyno_id}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://geemus.gitbooks.io/http-api-design/content/en/requests/minimize-path-nesting.html&#34;&gt;Minimize path nesting by Heroku(HTTP API Design Guide)&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;つまり、ネストの深さを制限するのと親子は集合を表すのが大事&lt;/p&gt;
+
+&lt;h1 id=&#34;実際にやってみる&#34;&gt;実際にやってみる&lt;/h1&gt;
+
+&lt;p&gt;blogが複数の記事を持つものとする&lt;br /&gt;
+集合で表すと &lt;code&gt;blogs ∋ articles&lt;/code&gt;&lt;br /&gt;
+articleをrailsでscaffoldすると次のリソースになる&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ rails routes
+      Prefix Verb   URI Pattern             Controller#Action
+    articles GET    /articles(.:format)     articles#index
+             POST   /articles(.:format)     articles#create
+     article GET    /articles/:id(.:format) articles#show
+             PATCH  /articles/:id(.:format) articles#update
+             PUT    /articles/:id(.:format) articles#update
+             DELETE /articles/:id(.:format) articles#destroy
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;これが親子関係になると次のリソースになる&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ rails routes
+      Prefix Verb   URI Pattern                       Controller#Action
+    articles GET    /blogs/:id/articles(.:format)     articles#index
+             POST   /blogs/:id/articles(.:format)     articles#create
+     article GET    /blogs/:id/articles/:id(.:format) articles#show
+             PATCH  /blogs/:id/articles/:id(.:format) articles#update
+             PUT    /blogs/:id/articles/:id(.:format) articles#update
+             DELETE /blogs/:id/articles/:id(.:format) articles#destroy
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;が、ネストが深い&lt;br /&gt;
+ここでHerokuのURI設計を参考にするとこうなる&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ rails routes
+      Prefix Verb   URI Pattern                       Controller#Action
+    articles GET    /blogs/:id/articles(.:format)     articles#index
+             POST   /blogs/:id/articles(.:format)     articles#create
+     article GET    /articles/:id(.:format)           articles#show
+             PATCH  /articles/:id(.:format)           articles#update
+             PUT    /articles/:id(.:format)           articles#update
+             DELETE /articles/:id(.:format)           articles#destroy
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;新規作成と一覧取得は親子関係の状態で持ってくる, 作成するのでそのまま。&lt;br /&gt;
+詳細取得と更新、削除は一意な値で判断して編集するので、省略できる。&lt;br /&gt;
+blogに属さない記事は存在しないので、こんな感じで良さそう。&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

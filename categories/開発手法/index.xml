@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>開発手法 on pyar.bz</title>
+    <link>https://b.pyar.bz/categories/%E9%96%8B%E7%99%BA%E6%89%8B%E6%B3%95/index.xml</link>
+    <description>Recent content in 開発手法 on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/categories/%E9%96%8B%E7%99%BA%E6%89%8B%E6%B3%95/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Github-flowを分かりやすく図解してみた</title>
+      <link>https://b.pyar.bz/20140122/github-flow</link>
+      <pubDate>Wed, 22 Jan 2014 16:48:31 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20140122/github-flow</guid>
+      <description>
+
+&lt;p&gt;「github チーム 使い方」とかでggってみたら、git-flowとGithub-flowがごっちゃになっててわかりづらい。他の人に説明する時にも使いそうなので、個人的にまとめてみた。&lt;/p&gt;
+
+&lt;!-- more --&gt;
+
+&lt;h3 id=&#34;contents&#34;&gt;Contents&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#github-flow&#34;&gt;Github flowって何よ？&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#outline&#34;&gt;概要教えて&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#characteristic&#34;&gt;特徴は？&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#weak-points&#34;&gt;欠点は？&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#diagram&#34;&gt;流れを図で説明して&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#using&#34;&gt;実際にどうやんの？&lt;/a&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;#repository&#34;&gt;リポジトリを準備する&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#collaborator&#34;&gt;各ユーザーをCollaboratorに登録する&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#clone&#34;&gt;git clone&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#branch&#34;&gt;masterからgit branch&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#coding&#34;&gt;コーディング&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#push&#34;&gt;git push&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#pull&#34;&gt;pull request&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#marge&#34;&gt;masterブランチへmarge&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#deploy&#34;&gt;直ちにdeploy&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#remove&#34;&gt;ブランチを削除&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#gitpull&#34;&gt;git pull&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#reference&#34;&gt;参照&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&#34;p-id-github-flow-github-flowって何よ-p&#34;&gt;&lt;p id=&#34;github-flow&#34;&gt;Github flowって何よ？&lt;/p&gt;&lt;/h1&gt;
+
+&lt;p&gt;複数人で開発するときに、&lt;code&gt;github上のリポジトリ&lt;/code&gt;をどう運用するかをまとめたもの。&lt;/p&gt;
+
+&lt;h1 id=&#34;p-id-outline-概要教えて-p&#34;&gt;&lt;p id=&#34;outline&#34;&gt;概要教えて&lt;/p&gt;&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;masterブランチのものは、いつでもデプロイ出来る状態で無ければならない&lt;/li&gt;
+&lt;li&gt;新しい何かに取り組む際は、masterからブランチを作成する&lt;/li&gt;
+&lt;li&gt;作成したブランチは、説明的な名前を付ける（例: new-oauth2-scopes）&lt;/li&gt;
+&lt;li&gt;作成したブランチは、定期的にgithub上へ&lt;code&gt;git push&lt;/code&gt;する&lt;/li&gt;
+&lt;li&gt;フィードバックや助言、ブランチのマージをして欲しいときは、github上で&lt;code&gt;pull request&lt;/code&gt;を作成する&lt;/li&gt;
+&lt;li&gt;他の誰かがレビューをする。&lt;/li&gt;
+&lt;li&gt;OKが出たら、masterへ&lt;code&gt;marge&lt;/code&gt;できる&lt;/li&gt;
+&lt;li&gt;マージをしてmasterへpushしたら、直ちにデプロイをする&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&#34;p-id-characteristic-特徴は-p&#34;&gt;&lt;p id=&#34;characteristic&#34;&gt;特徴は？&lt;/p&gt;&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;リポジトリは1つだけを共有する (forkしない)&lt;/li&gt;
+&lt;li&gt;開発する人をColleboratorに登録し、登録されていない人は&lt;code&gt;git push&lt;/code&gt;できない&lt;/li&gt;
+&lt;li&gt;ブランチでタスク (今やってること) を管理できるので、運用が楽。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&#34;p-id-weak-points-欠点は-p&#34;&gt;&lt;p id=&#34;weak-points&#34;&gt;欠点は？&lt;/p&gt;&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;集中型管理であるため、非匿名多数での開発には向いていない。(例: オープンソースプロジェクト)&lt;/li&gt;
+&lt;li&gt;teamリポジトリでない場合、masterブランチに&lt;code&gt;git push&lt;/code&gt;する恐れがある。&lt;/li&gt;
+&lt;li&gt;リポジトリが1つしかないので、アカウントが消えたら色々死ぬ。(ローカルにデータがあれば別)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&#34;p-id-diagram-流れを図で説明して-p&#34;&gt;&lt;p id=&#34;diagram&#34;&gt;流れを図で説明して&lt;/p&gt;&lt;/h1&gt;
+
+&lt;p&gt;こんな流れになる。
+&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/flow-chart.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;p-id-using-実際にどうやんの-p&#34;&gt;&lt;p id=&#34;using&#34;&gt;実際にどうやんの？&lt;/p&gt;&lt;/h1&gt;
+
+&lt;h2 id=&#34;p-id-repository-1-リポジトリを準備する-p&#34;&gt;&lt;p id=&#34;repository&#34;&gt;1.リポジトリを準備する&lt;/p&gt;&lt;/h2&gt;
+
+&lt;p&gt;レポジトリを作成する
+&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/make_repository.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;README.mdを作成するにチェックを入れて、レポジトリを作る
+&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/test_repo.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;p-id-collaborator-2-各ユーザーをcollaboratorに登録する-p&#34;&gt;&lt;p id=&#34;collaborator&#34;&gt;2.各ユーザーをCollaboratorに登録する&lt;/p&gt;&lt;/h2&gt;
+
+&lt;p&gt;Collaboratorに登録する。登録者以外は&lt;code&gt;git push&lt;/code&gt;出来ないようにする。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/github_setting.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/collaborator_setting.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/add_collaboratior.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;p-id-clone-3-git-clone-p&#34;&gt;&lt;p id=&#34;clone&#34;&gt;3.&lt;code&gt;git clone&lt;/code&gt;&lt;/p&gt;&lt;/h2&gt;
+
+&lt;p&gt;github上で作成したリポジトリをローカルに持ってくる
+&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/git_clone.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ git clone &amp;quot;your_repository&amp;quot;
+$ cd &amp;quot;your_repository&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;p-id-branch-4-masterから-git-branch-p&#34;&gt;&lt;p id=&#34;branch&#34;&gt;4.masterから&lt;code&gt;git branch&lt;/code&gt;&lt;/p&gt;&lt;/h2&gt;
+
+&lt;p&gt;機能毎にブランチを切る。ブランチ名は説明的な名前。
+&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/git_branch.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ git checkout -b &amp;quot;new_branch&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;もしくは&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ git branch &amp;quot;new_branch&amp;quot;
+$ git checkout &amp;quot;new_branch&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;p-id-coding-5-コーディング-p&#34;&gt;&lt;p id=&#34;coding&#34;&gt;5.コーディング&lt;/p&gt;&lt;/h2&gt;
+
+&lt;p&gt;コーディングする。&lt;/p&gt;
+
+&lt;h2 id=&#34;p-id-push-6-git-push-p&#34;&gt;&lt;p id=&#34;push&#34;&gt;6.&lt;code&gt;git push&lt;/code&gt;&lt;/p&gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;ローカル上で&lt;/code&gt;切ったbranchを定期的にgithubに反映させる
+&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/git_push.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ git add -A
+$ git commit -m &amp;quot;commit messages&amp;quot;
+$ git push origin &amp;quot;new_branch&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;p-id-pull-7-pull-request-p&#34;&gt;&lt;p id=&#34;pull&#34;&gt;7.pull request&lt;/p&gt;&lt;/h2&gt;
+
+&lt;p&gt;もし、以下のことをしたい場合、&lt;code&gt;github上で&lt;/code&gt;pull requestを送る&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;レビューしてほしい&lt;/li&gt;
+&lt;li&gt;ここが分からない&lt;/li&gt;
+&lt;li&gt;完成したのでmergeしてほしい&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/pull_request.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/pull_request_decision.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;p-id-marge-8-masterブランチへmarge-p&#34;&gt;&lt;p id=&#34;marge&#34;&gt;8.masterブランチへmarge&lt;/p&gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;github上で&lt;/code&gt;許可が出たら、&lt;code&gt;github上で&lt;/code&gt;mergeする&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/marge_pull_request.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/git_marge.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;p-id-deploy-9-直ちにdeploy-p&#34;&gt;&lt;p id=&#34;deploy&#34;&gt;9.直ちにdeploy&lt;/p&gt;&lt;/h2&gt;
+
+&lt;p&gt;deployして反映させる&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/git_deploy.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;p-id-remove-10-ブランチを削除-p&#34;&gt;&lt;p id=&#34;remove&#34;&gt;10.ブランチを削除&lt;/p&gt;&lt;/h2&gt;
+
+&lt;p&gt;機能更新が終了したら、&lt;code&gt;ローカル上で&lt;/code&gt;ブランチを削除する&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/git_remove.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ git checkout master
+$ git branch -D &amp;quot;new_branch&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;github上の&lt;/code&gt;ブランチを削除する
+&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/github_rm.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ git push origin :&amp;quot;new_branch&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;p-id-gitpull-11-git-pull-p&#34;&gt;&lt;p id=&#34;gitpull&#34;&gt;11.&lt;code&gt;git pull&lt;/code&gt;&lt;/p&gt;&lt;/h2&gt;
+
+&lt;p&gt;git pullしてmasterリポジトリを更新する&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;//dl.dropboxusercontent.com/u/16268979/pyar6329/octopress/github-flow/git_pull.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ git pull origin master
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;もしくは&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ git fetch origin master
+$ git marge origin/master
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;あとは4~11を繰り返すだけ&lt;/p&gt;
+
+&lt;h1 id=&#34;p-id-reference-参照-p&#34;&gt;&lt;p id=&#34;reference&#34;&gt;参照&lt;/p&gt;&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&#34;//gist.github.com/Gab-km/3705015&#34;&gt;//gist.github.com/Gab-km/3705015&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

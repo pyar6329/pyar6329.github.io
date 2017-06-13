@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Postgresql on pyar.bz</title>
+    <link>https://b.pyar.bz/tags/postgresql/index.xml</link>
+    <description>Recent content in Postgresql on pyar.bz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <atom:link href="https://b.pyar.bz/tags/postgresql/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>macでPostgreSQLをインストールする</title>
+      <link>https://b.pyar.bz/20141021/mac-postgresql-installation</link>
+      <pubDate>Tue, 21 Oct 2014 20:20:23 -0900</pubDate>
+      
+      <guid>https://b.pyar.bz/20141021/mac-postgresql-installation</guid>
+      <description>
+
+&lt;p&gt;sqliteでは外部キー制約が使えるようになったが、gemの&lt;code&gt;foreigner&lt;/code&gt;では使えないらしい。なのでdevelopmentの確認用にpostgreSQLを使うことにした。&lt;/p&gt;
+
+&lt;p&gt;macでhomebrewを用いてpostgreSQLをインストールする。&lt;/p&gt;
+
+&lt;h2 id=&#34;クライアント専用として使う場合&#34;&gt;クライアント専用として使う場合&lt;/h2&gt;
+
+&lt;p&gt;自動起動はいらないのでインストールだけでOK。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ brew install postgresql
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;サーバとして使う場合&#34;&gt;サーバとして使う場合&lt;/h2&gt;
+
+&lt;p&gt;インストールする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ brew install postgresql
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;homebrewで作られた起動設定ファイルにシンボリックリンクを貼る&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ ln -sfv /usr/local/opt/postgresql/*.plist ~/Library/LaunchAgents
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ログイン時に自動起動させる。このコマンドを打った時点で起動する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ launchctl load -w ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみにログイン時に自動起動させなくする場合は以下のコマンド。このコマンドを打った時点で終了する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ launchctl unload -w ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;去年位までは&lt;code&gt;$ initdb /usr/local/var/postgres -E utf8&lt;/code&gt;ってコマンドで初期文字コードを指定していたが、2014年10月21日現在、初期値が&lt;code&gt;ja_JP.utf-8&lt;/code&gt;になっていたのでいらないっぽい。&lt;/p&gt;
+
+&lt;h2 id=&#34;設定ファイルを弄る&#34;&gt;設定ファイルを弄る&lt;/h2&gt;
+
+&lt;p&gt;shellに設定を書き込む。&lt;/p&gt;
+
+&lt;h3 id=&#34;zshの場合&#34;&gt;zshの場合&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;$ touch ~/.zprofile
+$ echo &#39;export ARCHFLAGS=&amp;quot;-arch x86_64&amp;quot;&#39; &amp;gt;&amp;gt; ~/.zprofile
+$ echo &#39;export PGDATA=&amp;quot;/usr/local/var/postgres&amp;quot;&#39; &amp;gt;&amp;gt; ~/.zprofile
+$ source ~/.zprofile
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;bashの場合&#34;&gt;bashの場合&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;$ touch ~/.bash_profile
+$ echo &#39;export ARCHFLAGS=&amp;quot;-arch x86_64&amp;quot;&#39; &amp;gt;&amp;gt; ~/.bash_profile
+$ echo &#39;export PGDATA=&amp;quot;/usr/local/var/postgres&amp;quot;&#39; &amp;gt;&amp;gt; ~/.bash_profile
+$ source ~/.bash_profile
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;ARCHFLAGS&lt;/code&gt;はgemで使う場合のみ追加。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;PGDATA&lt;/code&gt;は&lt;code&gt;$ postgres -D /usr/local/var/postgres&lt;/code&gt;で起動させるがそれを&lt;code&gt;$ postgres&lt;/code&gt;だけに省略できる。ただ自動起動の設定を使うとこのコマンドを使うことはない気がする。&lt;code&gt;launchctl load -w&lt;/code&gt;、&lt;code&gt;launchctl unload -w&lt;/code&gt;で起動、終了できるし。&lt;/p&gt;
+
+&lt;p&gt;ちなみに.zprofile, .bash_profileはログイン時に1度しか読み込まれない。このままではシェル(terminal)を閉じると反映されない。なので一度ログアウトして反映させる。&lt;/p&gt;
+
+&lt;p&gt;外部公開とかはしないので、新規にユーザーを作成したりはしない。&lt;/p&gt;
+
+&lt;h2 id=&#34;passwordの設定&#34;&gt;Passwordの設定&lt;/h2&gt;
+
+&lt;p&gt;まずpostgresにログインする&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ psql postgres
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;パスワードを設定する&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;postgres=# \password
+postgres=# \q
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;このままではログイン時にパスワードを聞かれないので設定を変更する。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;変更前&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;# &amp;quot;local&amp;quot; is for Unix domain socket connections only
+local   all             all                                     trust
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            trust
+# IPv6 local connections:
+host    all             all             ::1/128                 trust
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;trustをmd5にする。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;変更後&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;# &amp;quot;local&amp;quot; is for Unix domain socket connections only
+local   all             all                                     md5
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            md5
+# IPv6 local connections:
+host    all             all             ::1/128                 md5
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;設定を反映させるためにpostgresを再起動する&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ launchctl unload -w ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+$ launchctl load -w ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;パスワードを聞かれないようにする&#34;&gt;パスワードを聞かれないようにする&lt;/h2&gt;
+
+&lt;p&gt;パスワードを設定したが、ログイン時に一々聞かれると面倒。
+なのでパスワードを設定ファイルに書いておく。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ touch ~/.pgpass
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;中には&lt;code&gt;ホスト名:ポート番号:データベース名:ユーザー名:パスワード&lt;/code&gt;のように書く。ワイルドカード&lt;code&gt;*&lt;/code&gt;でもOK。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;例&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;localhost:5432:*:pyarbz:hogepass
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみにこれは、外部にPostgresqlがある場合でも使える。アクセスするものが複数あれば、複数行書く。&lt;/p&gt;
+
+&lt;h2 id=&#34;timezoneをutcに変更する&#34;&gt;TimezoneをUTCに変更する&lt;/h2&gt;
+
+&lt;p&gt;RailsではDBにUTCとして保存し、取り出して使うときにその地域に合わせて変更した方がいいらしい。&lt;/p&gt;
+
+&lt;p&gt;また、Heroku PostgreSQLやAmazon RDSなど海外サーバを用いることが多いので、UTCに変更しておく。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;変更前&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;log_timezone = &#39;Japan&#39;
+timezone = &#39;Japan&#39;
+lc_messages = &#39;ja_JP.UTF-8&#39;
+lc_monetary = &#39;ja_JP.UTF-8&#39;
+lc_numeric = &#39;ja_JP.UTF-8&#39;
+lc_time = &#39;ja_JP.UTF-8&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;変更後&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;log_timezone = &#39;UTC&#39;
+timezone = &#39;UTC&#39;
+lc_messages = &#39;ja_JP.UTF-8&#39;
+lc_monetary = &#39;ja_JP.UTF-8&#39;
+lc_numeric = &#39;ja_JP.UTF-8&#39;
+lc_time = &#39;en_US.UTF-8&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;postgresqlコマンド集&#34;&gt;PostgreSQLコマンド集&lt;/h2&gt;
+
+&lt;h3 id=&#34;データベース&#34;&gt;データベース&lt;/h3&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;postgres内のコマンド&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;shellのコマンド&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;一覧&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\l&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;psql -l&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;作成&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;CREATE DATABASE データベース名;&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;createdb データベース名 -U 使うユーザー名&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;選択&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\c データベース名&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;psql データベース名&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;削除&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;DROP DATABASE データベース名;&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;dropdb データベース名&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&#34;テーブル&#34;&gt;テーブル&lt;/h3&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;postgres内のコマンド&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;shellのコマンド&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;一覧&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\d&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;作成&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;CREATE TABLE テーブル名(id int, name varchar(255).....);&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;削除&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;DROP TABLE products;&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&#34;ユーザー&#34;&gt;ユーザー&lt;/h3&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;postgres内のコマンド&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;shellのコマンド&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;一覧&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\du&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;作成&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;createuser -P ユーザー名;&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;作成(スーパー)&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;createuser -s -P ユーザー名;&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;削除&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;dropuser ユーザー名&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;パスワード設定時のアクセス&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\password&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;psql -U postgres template1&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;パスワード変更&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;ALTER USER postgres encrypted password &#39;パスワード&#39;;&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&#34;その他&#34;&gt;その他&lt;/h3&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;種類&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;postgres内のコマンド&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;shellのコマンド&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;終了&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\q&lt;/code&gt; または&lt;code&gt;ctrl+d&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;help&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;code&gt;\?&lt;/code&gt;&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
